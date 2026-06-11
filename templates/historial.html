@@ -1,0 +1,54 @@
+{% extends "base.html" %}
+
+{% block content %}
+<div class="pagina-lista">
+    <h2>📊 Historial de Ingresos y Gastos</h2>
+    
+    <div id="panel-bloqueado" class="mensaje-vacio" style="display: flex; flex-direction: column; align-items: center; gap: 15px;">
+        <p>🔒 Esta área está protegida con contraseña.</p>
+        <button id="btn-desbloquear" class="btn-tabla" style="padding: 15px 30px; font-size: 1.2em;">Desbloquear Historial</button>
+    </div>
+
+    <div id="panel-historial" style="display: none;">
+        
+        <section class="panel-formulario-inline" style="display: flex; gap: 10px; align-items: flex-end; flex-wrap: wrap;">
+            <div class="control-formulario">
+                <label>Filtros Rápidos:</label>
+                <div style="display: flex; gap: 5px;">
+                    <button id="btn-filtro-semana" class="btn-tabla">Esta Semana</button>
+                    <button id="btn-filtro-mes" class="btn-tabla">Este Mes</button>
+                </div>
+            </div>
+            
+            <div class="control-formulario" style="margin-left: auto;">
+                <label>Desde:</label>
+                <input type="date" id="fecha-inicio">
+            </div>
+            <div class="control-formulario">
+                <label>Hasta:</label>
+                <input type="date" id="fecha-fin">
+            </div>
+            <button id="btn-buscar-fechas" class="btn-tabla">🔍 Buscar</button>
+        </section>
+
+        <div style="display: flex; justify-content: space-around; background: #222; padding: 15px; border-radius: 8px; margin-bottom: 20px; border: 1px solid #333;">
+            <h3 style="margin:0; color: #EAEAEA;">Ingresos: <span id="txt-ingresos" style="color: #1C70A0;">$0.00</span></h3>
+            <h3 style="margin:0; color: #EAEAEA;">Gastos: <span id="txt-gastos" style="color: #CC0000;">$0.00</span></h3>
+            <h3 style="margin:0; color: #EAEAEA;">Neto: <span id="txt-neto" style="color: #00CC00;">$0.00</span></h3>
+        </div>
+
+        <table class="tabla-datos">
+            <thead>
+                <tr>
+                    <th>Fecha</th>
+                    <th>Concepto</th>
+                    <th>Monto</th>
+                    <th>Tipo</th>
+                </tr>
+            </thead>
+            <tbody id="tabla-historial-body">
+                </tbody>
+        </table>
+    </div>
+</div>
+{% endblock %}

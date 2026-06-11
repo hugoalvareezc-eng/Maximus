@@ -1,0 +1,71 @@
+{% extends "base.html" %}
+
+{% block content %}
+<div class="pagina-inventario">
+    <h2>📦 Gestión de Inventario</h2>
+
+    <div id="panel-bloqueado-inv" class="mensaje-vacio" style="display: flex; flex-direction: column; align-items: center; gap: 15px;">
+        <p>🔒 Esta área está protegida con contraseña.</p>
+        <button id="btn-desbloquear-inv" class="btn-tabla" style="padding: 15px 30px; font-size: 1.2em;">Desbloquear Inventario</button>
+    </div>
+
+    <div id="panel-inventario" style="display: none; width: 100%;">
+        <section class="panel-stock">
+            <h3>Stock Actual</h3>
+            <ul class="lista-stock">
+                <li class="{{ 'bajo-stock' if inventario.get('Agua', 0) <= 5 else '' }}">
+                    Agua: <span>{{ inventario.get('Agua', 0) }}</span> unidades
+                </li>
+                <li class="{{ 'bajo-stock' if inventario.get('Amper', 0) <= 5 else '' }}">
+                    Amper: <span>{{ inventario.get('Amper', 0) }}</span> unidades
+                </li>
+                <li class="{{ 'bajo-stock' if inventario.get('Barra', 0) <= 5 else '' }}">
+                    Barra: <span>{{ inventario.get('Barra', 0) }}</span> unidades
+                </li>
+                <li class="{{ 'bajo-stock' if inventario.get('Cafe', 0) <= 5 else '' }}">
+                    Cafe: <span>{{ inventario.get('Cafe', 0) }}</span> unidades
+                </li>
+                <li class="{{ 'bajo-stock' if inventario.get('Proteina', 0) <= 5 else '' }}">
+                    Proteina: <span>{{ inventario.get('Proteina', 0) }}</span> unidades
+                </li>
+                <li class="{{ 'bajo-stock' if inventario.get('Creatina', 0) <= 5 else '' }}">
+                    Creatina: <span>{{ inventario.get('Creatina', 0) }}</span> unidades
+                </li>
+                <li class="{{ 'bajo-stock' if inventario.get('Preentreno', 0) <= 5 else '' }}">
+                    Preentreno: <span>{{ inventario.get('Preentreno', 0) }}</span> unidades
+                </li>
+            </ul>
+        </section>
+
+        <section class="panel-ajuste" style="margin-top: 20px;">
+            <h3>Ajustar Stock</h3>
+            <form id="form-ajustar-stock">
+                <div class="control-formulario">
+                    <label for="producto">Producto:</label>
+                    <select id="producto" name="producto" required>
+                        <option value="Agua">Agua</option>
+                        <option value="Amper">Amper</option>
+                        <option value="Barra">Barra</option>
+                        <option value="Cafe">Cafe</option>
+                        <option value="Proteina">Proteina</option>
+                        <option value="Creatina">Creatina</option>
+                        <option value="Preentreno">Preentreno</option>
+                    </select>
+                </div>
+                <div class="control-formulario">
+                    <label for="cantidad">Cantidad:</label>
+                    <input type="number" id="cantidad" name="cantidad" placeholder="Ej: 10" min="1" required>
+                </div>
+                <div class="botones-formulario">
+                    <button type="submit" class="btn-tabla" data-accion="sumar">
+                        ➕ Añadir (Compra)
+                    </button>
+                    <button type="submit" class="btn-tabla btn-eliminar" data-accion="restar">
+                        ➖ Restar (Corrección)
+                    </button>
+                </div>
+            </form>
+        </section>
+    </div>
+</div>
+{% endblock %}

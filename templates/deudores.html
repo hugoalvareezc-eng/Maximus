@@ -1,0 +1,59 @@
+{% extends "base.html" %}
+
+{% block content %}
+<div class="pagina-deudores">
+    
+    <aside class="panel-formulario-inline">
+        <h2>💸 Registrar Deuda</h2>
+        <p>Registra deudas de productos fiados o adelantos de clientes.</p>
+        <button class="btn-tabla" id="btn-mostrar-modal-deuda" style="width: 100%; padding: 12px; font-size: 1.1em;">
+            ➕ Registrar Nueva Deuda
+        </button>
+    </aside>
+
+    <section class="panel-lista-deudores">
+        <h2>Lista de Deudores</h2>
+
+        {% if not deudores %}
+            <div class="mensaje-vacio"> 🎉 ¡Nadie debe nada! 🎉 </div>
+        {% else %}
+            {% for deudor in deudores %}
+            <div class="card-deudor">
+                <div class="deudor-header">
+                    <h3>{{ deudor.nombre }}</h3>
+                    <button class="btn-tabla btn-anadir-deuda" data-nombre="{{ deudor.nombre }}">
+                        ➕ Añadir Deuda
+                    </button>
+                    
+                    <button class="btn-tabla btn-pagar btn-pagar-deuda-total" 
+                            data-nombre="{{ deudor.nombre }}" 
+                            data-total-deuda="{{ deudor.total_deuda }}">
+                        💵 Abonar/Liquidar Total
+                    </button>
+                    
+                    <span class="total-deuda">Debe: ${{ "%.2f"|format(deudor.total_deuda) }}</span>
+                </div>
+                <table class="tabla-deudas-interna">
+                    <thead> <tr> <th>Concepto</th> <th>Monto Pendiente</th> <th>Acción</th> </tr> </thead>
+                    <tbody>
+                        {% for deuda in deudor.deudas %}
+                        <tr>
+                            <td>{{ deuda.concepto }}</td>
+                            <td>${{ "%.2f"|format(deuda.monto) }}</td>
+                            <td>
+                                <button class="btn-tabla btn-pagar btn-pagar-deuda" 
+                                        data-deuda-id="{{ deuda.id }}" data-nombre="{{ deudor.nombre }}"
+                                        data-concepto="{{ deuda.concepto }}" data-monto-maximo="{{ deuda.monto }}">
+                                    💵 Pagar / Abonar
+                                </button>
+                            </td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+            {% endfor %}
+        {% endif %}
+    </section>
+</div>
+{% endblock %}

@@ -1,0 +1,44 @@
+{% extends "base.html" %}
+
+{% block content %}
+<div class="pagina-lista">
+    <h2>❌ Clientes Vencidos</h2>
+
+    {% if not vencidos %}
+        <div class="mensaje-vacio">
+            🎉 ¡No hay clientes vencidos! 🎉
+        </div>
+    {% else %}
+        <table class="tabla-datos">
+            <thead>
+                <tr>
+                    <th>Nombre</th>
+                    <th>Fecha de Vencimiento</th>
+                    <th>Acciones</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for nombre, fecha in vencidos %}
+                <tr>
+                    <td>{{ nombre }}</td>
+                    <td>{{ fecha }}</td>
+                    <td class="acciones-tabla">
+                        <button class="btn-tabla btn-pagar btn-procesar-pago" 
+                                data-nombre="{{ nombre }}"
+                                data-precio-normal="{{ precios['Mes Normal'] }}"
+                                data-precio-estudiante="{{ precios['Mes Estudiante'] }}"
+                                data-precio-semana="{{ precios['Semana'] }}">
+                            💳 Procesar Pago
+                        </button>
+                        
+                        <button class="btn-tabla btn-eliminar" data-nombre="{{ nombre }}">
+                            🗑️ Eliminar
+                        </button>
+                    </td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    {% endif %}
+</div>
+{% endblock %}

@@ -1,0 +1,55 @@
+{% extends "base.html" %}
+
+{% block content %}
+<div class="pagina-lista">
+    
+    <section class="panel-formulario-inline">
+        <h2>Registrar Vencimiento Manual</h2>
+        <form id="form-registro-manual">
+            <div class="control-formulario">
+                <label for="manual-nombre">Nombre:</label>
+                <input type="text" id="manual-nombre" placeholder="Nombre completo del cliente" required>
+            </div>
+            <div class="control-formulario">
+                <label for="manual-fecha">Nueva Fecha de Vencimiento:</label>
+                <input type="date" id="manual-fecha" required>
+            </div>
+            <button type="submit" class="btn-tabla">➕ Registrar / Actualizar</button>
+        </form>
+    </section>
+
+    <h2>🗓️ Próximos Vencimientos</h2>
+
+    <div style="background-color: #222; padding: 15px; border-radius: 8px; margin-bottom: 20px; border: 1px solid #333;">
+        <div class="control-formulario" style="width: 100%;">
+            <label for="buscador-agenda" style="color: #A0701C;">🔍 Buscar Cliente en Agenda:</label>
+            <input type="text" id="buscador-agenda" placeholder="Escribe el nombre aquí..." style="width: 100%; padding: 10px; font-size: 1.1em;">
+        </div>
+    </div>
+    {% if not agenda_agrupada %}
+        <div class="mensaje-vacio">
+            No hay pagos próximos registrados.
+        </div>
+    {% else %}
+        {% for mes, clientes in agenda_agrupada.items() %}
+            <h3 class="grupo-mes">{{ mes }}</h3>
+            <table class="tabla-datos">
+                <thead>
+                    <tr>
+                        <th>Nombre</th>
+                        <th>Fecha de Vencimiento</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for cliente in clientes %}
+                    <tr>
+                        <td>{{ cliente.nombre }}</td>
+                        <td>{{ cliente.fecha }}</td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        {% endfor %}
+    {% endif %}
+</div>
+{% endblock %}

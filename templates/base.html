@@ -1,0 +1,55 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Maximus Gym</title>
+    
+    <link rel="icon" type="image/png" href="{{ url_for('static', filename='imagenes/logo.png') }}">
+    <link rel="apple-touch-icon" href="{{ url_for('static', filename='imagenes/logo.png') }}">
+
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/estilo.css') }}">
+    
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+    <script src="{{ url_for('static', filename='js/app.js') }}" defer></script>
+</head>
+<body>
+    <header>
+        <div class="logo">
+            <img src="{{ url_for('static', filename='imagenes/logo.png') }}" alt="Logo Gimnasio">
+        </div>
+        <nav>
+            <ul>
+                <li><a href="{{ url_for('index') }}" class="{{ 'active' if request.path == url_for('index') else '' }}">💰 Registro</a></li>
+                <li><a href="{{ url_for('vencidos') }}" class="{{ 'active' if request.path == url_for('vencidos') else '' }}">❌ Vencidos</a></li>
+                <li><a href="{{ url_for('deudores') }}" class="{{ 'active' if request.path == url_for('deudores') else '' }}">💸 Deudores</a></li>
+                <li><a href="{{ url_for('agenda') }}" class="{{ 'active' if request.path == url_for('agenda') else '' }}">🗓️ Agenda</a></li>
+                <li><a href="{{ url_for('inventario') }}" class="{{ 'active' if request.path == url_for('inventario') else '' }}">📦 Inventario</a></li>
+                <li><a href="{{ url_for('historial') }}" class="{{ 'active' if request.path == url_for('historial') else '' }}">📊 Historial</a></li>
+            </ul>
+        </nav>
+        <div class="fecha-hora" id="fecha-hora-actual">
+            </div>
+    </header>
+
+    <main>
+        {% block content %}{% endblock %}
+    </main>
+
+    <footer>
+        <p>Control - Maximus Gym</p>
+    </footer>
+
+    <div class="modal-backdrop" id="modal-backdrop" style="display: none;"></div>
+    <div class="modal" id="modal-principal" style="display: none;">
+        <h3 id="modal-titulo">Título del Modal</h3>
+        <div id="modal-contenido">
+            </div>
+        <div class="modal-acciones">
+            <button class="btn-tabla" id="modal-boton-confirmar">Confirmar</button>
+            <button class="btn-tabla btn-eliminar" id="modal-boton-cancelar">Cancelar</button>
+        </div>
+    </div>
+
+</body>
+</html>

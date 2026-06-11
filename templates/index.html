@@ -1,0 +1,92 @@
+{% extends "base.html" %}
+
+{% block content %}
+<div class="pagina-registro">
+    
+    <section class="panel-botones">
+        <h2>Registro de Ingresos</h2>
+        <div class="grid-botones">
+            <button class="btn-ingreso" data-tipo="Mes Normal" data-monto="{{ precios['Mes Normal'] }}" data-requiere-nombre="true">
+                <img src="{{ url_for('static', filename='imagenes/ms_nrml.png') }}" alt="Mes">
+                Mes Normal (${{ "%.2f"|format(precios['Mes Normal']) }})
+            </button>
+            <button class="btn-ingreso" data-tipo="Mes Estudiante" data-monto="{{ precios['Mes Estudiante'] }}" data-requiere-nombre="true">
+                <img src="{{ url_for('static', filename='imagenes/ms_nrml.png') }}" alt="Mes">
+                Mes Estudiante (${{ "%.2f"|format(precios['Mes Estudiante']) }})
+            </button>
+            <button class="btn-ingreso" data-tipo="Semana" data-monto="{{ precios['Semana'] }}" data-requiere-nombre="true">
+                <img src="{{ url_for('static', filename='imagenes/ms_nrml.png') }}" alt="Semana">
+                Semana (${{ "%.2f"|format(precios['Semana']) }})
+            </button>
+            <button class="btn-ingreso" data-tipo="Visita" data-monto="{{ precios['Visita'] }}" data-requiere-nombre="false">
+                <img src="{{ url_for('static', filename='imagenes/vis.png') }}" alt="Visita">
+                Visita (${{ "%.2f"|format(precios['Visita']) }})
+            </button>
+            
+            <button class="btn-ingreso" data-tipo="Agua" data-monto="{{ precios['Agua'] }}" data-requiere-nombre="false">
+                <img src="{{ url_for('static', filename='imagenes/agua.png') }}" alt="Agua">
+                Agua (${{ "%.2f"|format(precios['Agua']) }})
+            </button>
+            <button class="btn-ingreso" data-tipo="Amper" data-monto="{{ precios['Amper'] }}" data-requiere-nombre="false">
+                <img src="{{ url_for('static', filename='imagenes/amper.png') }}" alt="Amper">
+                Amper (${{ "%.2f"|format(precios['Amper']) }})
+            </button>
+            <button class="btn-ingreso" data-tipo="Barra" data-monto="{{ precios['Barra'] }}" data-requiere-nombre="false">
+                <img src="{{ url_for('static', filename='imagenes/barra.png') }}" alt="Barra">
+                Barra (${{ "%.2f"|format(precios['Barra']) }})
+            </button>
+            <button class="btn-ingreso" data-tipo="Cafe" data-monto="{{ precios['Cafe'] }}" data-requiere-nombre="false">
+                <img src="{{ url_for('static', filename='imagenes/cafe.png') }}" alt="Cafe">
+                Cafe (${{ "%.2f"|format(precios['Cafe']) }})
+            </button>
+            <button class="btn-ingreso" data-tipo="Proteina" data-monto="{{ precios['Proteina'] }}" data-requiere-nombre="false">
+                <img src="{{ url_for('static', filename='imagenes/p.png') }}" alt="Proteina">
+                Proteina (${{ "%.2f"|format(precios['Proteina']) }})
+                    </button>
+            <button class="btn-ingreso" data-tipo="Creatina" data-monto="{{ precios['Creatina'] }}" data-requiere-nombre="false">
+                <img src="{{ url_for('static', filename='imagenes/p.png') }}" alt="Creatina">
+                Creatina (${{ "%.2f"|format(precios['Creatina']) }})
+            </button>
+            <button class="btn-ingreso" data-tipo="Preentreno" data-monto="{{ precios['Preentreno'] }}" data-requiere-nombre="false">
+            <img src="{{ url_for('static', filename='imagenes/p.png') }}" alt="Preentreno">
+                Preentreno (${{ "%.2f"|format(precios['Preentreno']) }})
+            </button>
+            
+            <button class="btn-ingreso btn-especial" id="btn-otros-pagos">
+                <img src="{{ url_for('static', filename='imagenes/ms_nrml.png') }}" alt="Otros">
+                Otros Pagos (Anual, Semestre, etc.)
+            </button>
+
+            <button class="btn-gasto-rapido" id="btn-gasto-rapido">
+                Registrar Gasto
+            </button>
+        </div>
+    </section>
+
+    <aside class="panel-resumen">
+        <h2>Resumen Diario</h2>
+        
+        <div class="resumen-cifras">
+            <p>Ingresos: <span id="resumen-ingresos">${{ "%.2f"|format(resumen.ingresos) }}</span></p>
+            <p>Gastos: <span id="resumen-gastos">${{ "%.2f"|format(resumen.gastos) }}</span></p>
+            <p class="neto">NETO: <span id="resumen-neto">${{ "%.2f"|format(resumen.neto) }}</span></p>
+        </div>
+
+        <div class="resumen-inventario">
+            <h3>Inventario Rápido</h3>
+            <p id="inv-agua">Agua: {{ inventario.get('Agua', 0) }}</p>
+            <p id="inv-amper">Amper: {{ inventario.get('Amper', 0) }}</p>
+            <p id="inv-barra">Barra: {{ inventario.get('Barra', 0) }}</p>
+            <p id="inv-proteina">Proteina: {{ inventario.get('Proteina', 0) }}</p>
+            <p id="inv-creatina">Creatina: {{ inventario.get('Creatina', 0) }}</p>
+            <p id="inv-preentreno">Preentreno: {{ inventario.get('Preentreno', 0) }}</p>
+            </div>
+
+        <div class="acciones-cierre">
+            <button class="btn-cierre-dia" id="btn-cierre-dia">
+                CORTE DE CAJA
+            </button>
+        </div>
+    </aside>
+</div>
+{% endblock %}
