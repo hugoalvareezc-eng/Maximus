@@ -1,8 +1,13 @@
 import psycopg2
 from datetime import datetime, timedelta
 from dateutil.relativedelta import relativedelta
-import sys  # Para imprimir errores
-import os   # Para leer las variables de entorno
+import sys  
+import os   
+import time  # <-- Asegúrate de importar time
+
+# --- FORZAR HORA DE MÉXICO CENTRAL ---
+os.environ['TZ'] = 'America/Mexico_City'
+time.tzset()
 
 # --- CONFIGURACIÓN DE LA BASE DE DATOS ---
 # La URL de conexión se obtiene directamente de las variables de entorno de Render
@@ -118,7 +123,7 @@ def registrar_pago_cliente(nombre, tipo_pago, monto_total_membresia, monto_pagad
     """
     conn = crear_conexion()
     if conn is None: return False
-    hoy_dt = datetime.now().replace(hour=0, minute=0, second=0, microsecond=0)
+    hoy_dt = (datetime.utcnow() - timedelta(hours=6)).replace(hour=0, minute=0, second=0, microsecond=0)
     hoy_str = hoy_dt.strftime('%Y-%m-%d')
     vencimiento_existente_str = obtener_vencimiento_actual(nombre)
     
@@ -259,7 +264,7 @@ def actualizar_vencimiento_manual(nombre, fecha_vencimiento_str):
     """Inserta o actualiza un cliente con una fecha de vencimiento específica."""
     conn = crear_conexion()
     if conn is None: return False
-    hoy_str = datetime.now().strftime('%Y-%m-%d')
+    hoy_str = (datetime.utcnow() - timedelta(hours=6)).strftime('%Y-%m-%d')
     nombre_limpio = nombre.strip().title()
     try:
         cursor = conn.cursor()
@@ -337,7 +342,7 @@ def agregar_deuda(nombre, concepto, monto, conn=None):
         conn = crear_conexion()
         close_conn = True
     if conn is None: return False
-    hoy_str = datetime.now().strftime('%Y-%m-%d')
+    hoy_str = (datetime.utcnow() - timedelta(hours=6)).strftime('%Y-%m-%d')
     nombre_limpio = nombre.strip().title()
     try:
         cursor = conn.cursor()
@@ -377,7 +382,7 @@ def pagar_deuda(deuda_id, monto_abono, registrar_en_caja=True):
         monto_abono_real = min(monto_abono, monto_actual)
         if monto_abono_real <= 0: return False # No pagar 0 o negativo
 
-        hoy_str = datetime.now().strftime('%Y-%m-%d')
+        hoy_str = (datetime.utcnow() - timedelta(hours=6)).strftime('%Y-%m-%d')
         
         exito_ingreso = True
         if registrar_en_caja:
@@ -425,7 +430,7 @@ def pagar_deuda_total(nombre, monto_pagado_total, registrar_en_caja=True):
         monto_pagado_real = min(monto_pagado_total, total_adeudado)
         if monto_pagado_real <= 0: return False # No pagar 0 o negativo
 
-        hoy_str = datetime.now().strftime('%Y-%m-%d')
+        hoy_str = (datetime.utcnow() - timedelta(hours=6)).strftime('%Y-%m-%d')
         
         if registrar_en_caja:
             concepto_ingreso = f"Pago/Abono Deuda Total de {nombre_limpio}"
