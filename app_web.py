@@ -1,9 +1,14 @@
 import sys
 import os
+import time  # <-- Asegúrate de importar time
 from flask import Flask, render_template, request, jsonify, redirect, url_for
 import gimnasio_crud as db
-from datetime import datetime, timedelta
+from datetime import datetime
 import locale
+
+# --- FORZAR HORA DE MÉXICO CENTRAL ---
+os.environ['TZ'] = 'America/Mexico_City'
+time.tzset()
 
 # --- Configuración Inicial ---
 try:
@@ -61,7 +66,7 @@ app.config['SEND_FILE_MAX_AGE_DEFAULT'] = 0
 @app.route('/')
 def index():
     """Página principal: Registro y Cierre Diario."""
-    hoy_str = datetime.now().strftime('%Y-%m-%d')
+    hoy_str = (datetime.utcnow() - timedelta(hours=6)).strftime('%Y-%m-%d')
     ingresos, gastos = db.obtener_resumen_diario(hoy_str)
     resumen = {
         "ingresos": ingresos,
@@ -77,14 +82,14 @@ def index():
 @app.route('/vencidos')
 def vencidos():
     """Página de Clientes Vencidos."""
-    hoy_str = datetime.now().strftime('%Y-%m-%d')
+    hoy_str = (datetime.utcnow() - timedelta(hours=6)).strftime('%Y-%m-%d')
     lista_vencidos = db.obtener_vencidos(hoy_str)
     return render_template('vencidos.html', vencidos=lista_vencidos, precios=PRECIOS, tiempo=TIEMPO)
 
 @app.route('/agenda')
 def agenda():
     """Página de Próximos Vencimientos."""
-    hoy_str = datetime.now().strftime('%Y-%m-%d')
+    hoy_str = (datetime.utcnow() - timedelta(hours=6)).strftime('%Y-%m-%d')
     lista_proximos = db.obtener_proximos_vencimientos(hoy_str)
     agenda_agrupada = {}
     for nombre, fecha_venc_str in lista_proximos:
@@ -170,7 +175,7 @@ def api_registrar_ingreso():
             if monto <= 0:
                  return jsonify({"exito": False, "error": "Tipo de ingreso no reconocido o precio cero."}), 400
 
-            hoy_str = datetime.now().strftime('%Y-%m-%d')
+            hoy_str = (datetime.utcnow() - timedelta(hours=6)).strftime('%Y-%m-%d')
             if tipo_ingreso in PRODUCTOS_INVENTARIO:
                 inventario = db.obtener_inventario()
                 if inventario.get(tipo_ingreso, 0) < 1:
@@ -222,7 +227,7 @@ def api_registrar_gasto():
         return jsonify({"exito": False, "error": "El monto debe ser positivo."}), 400
     if not concepto: concepto = "Gasto Rápido/Varios" # Asegurar un concepto
 
-    hoy_str = datetime.now().strftime('%Y-%m-%d')
+    hoy_str = (datetime.utcnow() - timedelta(hours=6)).strftime('%Y-%m-%d')
     if db.registrar_gasto(hoy_str, concepto, monto):
         return jsonify({"exito": True, "mensaje": "Gasto registrado."})
     else:
@@ -240,7 +245,7 @@ def api_cerrar_dia():
     if gasto_adicional < 0:
          return jsonify({"exito": False, "error": "El gasto adicional no puede ser negativo."}), 400
 
-    hoy_str = datetime.now().strftime('%Y-%m-%d')
+    hoy_str = (datetime.utcnow() - timedelta(hours=6)).strftime('%Y-%m-%d')
     if gasto_adicional > 0:
         db.registrar_gasto(hoy_str, "Gasto Cierre de Día", gasto_adicional)
 
