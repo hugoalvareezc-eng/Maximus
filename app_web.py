@@ -1,14 +1,9 @@
 import sys
 import os
-import time  # <-- Asegúrate de importar time
 from flask import Flask, render_template, request, jsonify, redirect, url_for
 import gimnasio_crud as db
-from datetime import datetime
+from datetime import datetime, timedelta
 import locale
-
-# --- FORZAR HORA DE MÉXICO CENTRAL ---
-os.environ['TZ'] = 'America/Mexico_City'
-time.tzset()
 
 # --- Configuración Inicial ---
 try:
@@ -122,6 +117,7 @@ def deudores():
 def historial():
     """Página protegida de Historial de Ingresos."""
     return render_template('historial.html')
+
 # --- API (Endpoints para JavaScript) ---
 
 @app.route('/api/registrar_ingreso', methods=['POST'])
@@ -365,8 +361,6 @@ def api_agregar_deuda():
     except Exception as e:
         print(f"Error en /api/deudores/agregar: {e}", file=sys.stderr)
         return jsonify({"exito": False, "error": f"Error interno del servidor: {e}"}), 500
-
-# En app_web.py
 
 @app.route('/api/deudores/pagar', methods=['POST'])
 def api_pagar_deuda():
