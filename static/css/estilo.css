@@ -462,3 +462,26 @@ div:where(.swal2-container) .swal2-deny,
 div:where(.swal2-container) .swal2-cancel {
     background-color: var(--color-rojo) !important;
 }
+/* --- Botón Ojo y Modo Privacidad (App Bancaria) --- */
+.btn-ojo {
+    background: none;
+    border: none;
+    color: var(--color-texto-secundario);
+    cursor: pointer;
+    padding: 5px;
+    transition: color 0.3s;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+.btn-ojo:hover {
+    color: var(--color-primario);
+}
+.cifra-bancaria {
+    transition: filter 0.3s ease, opacity 0.3s ease;
+}
+.cifra-bancaria.censurado {
+    filter: blur(6px); /* El truco mágico del difuminado */
+    opacity: 0.6;
+    user-select: none; /* Evita que el usuario seleccione y copie el texto oculto */
+}
