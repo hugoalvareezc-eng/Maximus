@@ -18,7 +18,7 @@ document.addEventListener('DOMContentLoaded', () => {
         btnCancelarModal.addEventListener('click', () => ocultarModal());
     }
 
-    // --- Página de Registro (index.html) ---
+// --- Página de Registro (index.html) ---
     if (document.querySelector('.pagina-registro')) {
         document.querySelectorAll('.btn-ingreso[data-tipo]').forEach(boton => {
             boton.addEventListener('click', manejarClicIngresoEstandar);
@@ -26,6 +26,43 @@ document.addEventListener('DOMContentLoaded', () => {
         document.getElementById('btn-otros-pagos')?.addEventListener('click', manejarOtrosPagos);
         document.getElementById('btn-gasto-rapido')?.addEventListener('click', manejarGastoRapido);
         document.getElementById('btn-cierre-dia')?.addEventListener('click', manejarCierreDia);
+
+        // --- Lógica del Ojo Bancario ---
+        const btnToggleSaldos = document.getElementById('btn-toggle-saldos');
+        const cifrasBancarias = document.querySelectorAll('.cifra-bancaria');
+        const iconoAbierto = document.getElementById('icono-ojo-abierto');
+        const iconoCerrado = document.getElementById('icono-ojo-cerrado');
+
+        if (btnToggleSaldos && cifrasBancarias.length > 0) {
+            // Función para difuminar o mostrar
+            const aplicarEstadoSaldos = (ocultar) => {
+                cifrasBancarias.forEach(el => {
+                    if (ocultar) el.classList.add('censurado');
+                    else el.classList.remove('censurado');
+                });
+                
+                // Cambiar el icono
+                if (ocultar) {
+                    iconoAbierto.style.display = 'none';
+                    iconoCerrado.style.display = 'block';
+                } else {
+                    iconoAbierto.style.display = 'block';
+                    iconoCerrado.style.display = 'none';
+                }
+            };
+
+            // Revisar la memoria (localStorage) al cargar la página
+            const saldosOcultos = localStorage.getItem('saldosOcultos') === 'true';
+            aplicarEstadoSaldos(saldosOcultos);
+
+            // Al hacer clic en el ojo, cambiar el estado y guardar en memoria
+            btnToggleSaldos.addEventListener('click', () => {
+                const estadoActual = localStorage.getItem('saldosOcultos') === 'true';
+                const nuevoEstado = !estadoActual;
+                localStorage.setItem('saldosOcultos', nuevoEstado); // Guarda en el navegador
+                aplicarEstadoSaldos(nuevoEstado);
+            });
+        }
     }
 
     // --- Página de Vencidos (vencidos.html) ---
