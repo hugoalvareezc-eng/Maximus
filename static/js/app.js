@@ -480,77 +480,126 @@ async function manejarClicIngresoEstandar(evento) {
 }
 
 async function manejarOtrosPagos() {
+    // Paso 1: Nombre del cliente
     const { value: nombreIngresado } = await Swal.fire({
         title: 'Pago Especial',
         text: "Ingrese el nombre del cliente:",
         input: 'text',
+        inputPlaceholder: 'Nombre completo',
         showCancelButton: true,
-        confirmButtonText: 'Continuar',
+        confirmButtonText: 'Continuar →',
         cancelButtonText: 'Cancelar',
         confirmButtonColor: '#2980b9',
         inputValidator: (value) => {
-            if (!value) { return 'El nombre es obligatorio.'; }
+            if (!value || !value.trim()) { return 'El nombre es obligatorio.'; }
         }
     });
-
     if (!nombreIngresado) return;
     const nombre = capitalizarNombre(nombreIngresado);
 
-    const titulo = `Pago Especial para ${nombre}`;
-    const contenido = `
-        <p>Seleccione el tipo de membresía especial:</p>
-        <div class="modal-grid-botones" id="modal-botones-otros">
-            <button data-tipo="Anualidad" data-meses="12">Anualidad</button>
-            <button data-tipo="Semestre" data-meses="6">Semestre</button>
-            <button data-tipo="Otro (Meses)">Otro (Meses)</button>
-        </div>
-        <div id="campos-otros-meses" style="display: none;">
-            <div class="control-formulario">
-                <label for="modal-input-meses">Cantidad de Meses:</label>
-                <input type="number" id="modal-input-meses" placeholder="Ej: 3" min="1">
-            </div>
-        </div>
-        <div class="control-formulario">
-            <label for="modal-input-monto">Monto Total Pagado:</label>
-            <input type="number" id="modal-input-monto" step="0.01" placeholder="Ej: 1000.00" min="0.01">
-        </div>`;
+    // Paso 2: Tipo + monto en SweetAlert con botones visuales
+    const { value: formValues } = await Swal.fire({
+        title: `Pago Especial — ${nombre}`,
+        html: `
+            <div style="text-align: left; display: flex; flex-direction: column; gap: 18px; margin-top: 10px;">
+                <div>
+                    <label style="color: var(--color-texto-secundario); font-weight: 600; font-size: 0.9em; display: block; margin-bottom: 8px;">Tipo de Membresía:</label>
+                    <div style="display: flex; gap: 8px; flex-wrap: wrap;">
+                        <button type="button" id="btn-anualidad"
+                            style="flex:1; padding: 10px 6px; border-radius: 10px; border: 2px solid var(--color-borde); background: var(--color-fondo-terciario); color: var(--color-texto-secundario); cursor: pointer; font-weight: 600; font-size: 0.95em; transition: all 0.2s;">
+                            📅 Anualidad
+                        </button>
+                        <button type="button" id="btn-semestre"
+                            style="flex:1; padding: 10px 6px; border-radius: 10px; border: 2px solid var(--color-borde); background: var(--color-fondo-terciario); color: var(--color-texto-secundario); cursor: pointer; font-weight: 600; font-size: 0.95em; transition: all 0.2s;">
+                            🗓️ Semestre
+                        </button>
+                        <button type="button" id="btn-otro"
+                            style="flex:1; padding: 10px 6px; border-radius: 10px; border: 2px solid var(--color-borde); background: var(--color-fondo-terciario); color: var(--color-texto-secundario); cursor: pointer; font-weight: 600; font-size: 0.95em; transition: all 0.2s;">
+                            ✏️ Otro
+                        </button>
+                    </div>
+                </div>
+                <div id="campo-meses-custom" style="display: none;">
+                    <label style="color: var(--color-texto-secundario); font-weight: 600; font-size: 0.9em; display: block; margin-bottom: 4px;">Número de Meses:</label>
+                    <input id="swal-input-meses" type="number" min="1" placeholder="Ej: 3" class="swal2-input" style="width: 100%; margin: 0; box-sizing: border-box;">
+                </div>
+                <div>
+                    <label style="color: var(--color-texto-secundario); font-weight: 600; font-size: 0.9em; display: block; margin-bottom: 4px;">Monto Total ($):</label>
+                    <input id="swal-input-monto" type="number" step="0.01" min="0.01" placeholder="Ej: 1500.00" class="swal2-input" style="width: 100%; margin: 0; box-sizing: border-box;">
+                </div>
+            </div>`,
+        focusConfirm: false,
+        showCancelButton: true,
+        confirmButtonText: 'Registrar Pago',
+        cancelButtonText: 'Cancelar',
+        confirmButtonColor: '#2980b9',
+        didOpen: () => {
+            let tipoActivo = null;
+            const mapaBotones = {
+                'Anualidad':    document.getElementById('btn-anualidad'),
+                'Semestre':     document.getElementById('btn-semestre'),
+                'Otro (Meses)': document.getElementById('btn-otro'),
+            };
+            const campomeses = document.getElementById('campo-meses-custom');
 
-    mostrarModal(titulo, contenido, async () => {
-        const tipoSeleccionado = document.querySelector('#modal-botones-otros .tipo-seleccionado');
-        if (!tipoSeleccionado) { msjError("Seleccione un tipo de pago."); return; }
-        const tipo = tipoSeleccionado.dataset.tipo;
-        let meses = parseInt(tipoSeleccionado.dataset.meses || '0');
-        const montoTotalInput = document.getElementById('modal-input-monto');
-        if (!montoTotalInput) return;
-        const montoTotal = parseFloat(montoTotalInput.value);
-
-        if (tipo === "Otro (Meses)") {
-            const mesesInput = document.getElementById('modal-input-meses');
-            meses = parseInt(mesesInput.value);
-            if (isNaN(meses) || meses <= 0) { msjError("Ingrese un número de meses válido."); return; }
-        }
-        if (isNaN(montoTotal) || montoTotal <= 0) { msjError("Ingrese un monto total válido."); return; }
-
-        const payload = { tipo: tipo, nombre: nombre, monto_pagado: montoTotal, monto_total: montoTotal, meses: meses };
-        const respuesta = await postData('/api/registrar_ingreso', payload);
-        if (respuesta.exito) { 
-            ocultarModal(); 
-            msjExito(respuesta.mensaje);
-            setTimeout(() => location.reload(), 1000); 
-        }
-        else { msjError(respuesta.error); }
-    });
-
-    document.querySelectorAll('#modal-botones-otros button').forEach(btn => {
-        btn.addEventListener('click', (e) => {
-            document.querySelectorAll('#modal-botones-otros button').forEach(b => b.classList.remove('tipo-seleccionado'));
-            e.currentTarget.classList.add('tipo-seleccionado');
-            const camposMeses = document.getElementById('campos-otros-meses');
-            if (camposMeses) {
-                camposMeses.style.display = (e.currentTarget.dataset.tipo === "Otro (Meses)") ? 'block' : 'none';
+            Object.entries(mapaBotones).forEach(([tipo, btn]) => {
+                btn.addEventListener('click', () => {
+                    Object.values(mapaBotones).forEach(b => {
+                        b.style.borderColor = 'var(--color-borde)';
+                        b.style.background  = 'var(--color-fondo-terciario)';
+                        b.style.color       = 'var(--color-texto-secundario)';
+                    });
+                    btn.style.borderColor = 'var(--color-primario)';
+                    btn.style.background  = 'rgba(41, 128, 185, 0.2)';
+                    btn.style.color       = '#fff';
+                    tipoActivo = tipo;
+                    campomeses.style.display = (tipo === 'Otro (Meses)') ? 'block' : 'none';
+                });
+            });
+            // Exponer tipoActivo al preConfirm via closure trick
+            document.getElementById('swal-input-monto')._getTipo = () => tipoActivo;
+        },
+        preConfirm: () => {
+            const tipoSeleccionado = document.getElementById('swal-input-monto')._getTipo();
+            if (!tipoSeleccionado) {
+                Swal.showValidationMessage('Selecciona un tipo de membresía (Anualidad, Semestre u Otro).');
+                return false;
             }
-        });
+            let meses = 0;
+            if (tipoSeleccionado === 'Anualidad') meses = 12;
+            else if (tipoSeleccionado === 'Semestre') meses = 6;
+            else {
+                meses = parseInt(document.getElementById('swal-input-meses').value);
+                if (isNaN(meses) || meses <= 0) {
+                    Swal.showValidationMessage('Ingresa un número de meses válido.');
+                    return false;
+                }
+            }
+            const monto = parseFloat(document.getElementById('swal-input-monto').value);
+            if (isNaN(monto) || monto <= 0) {
+                Swal.showValidationMessage('Ingresa un monto válido.');
+                return false;
+            }
+            return { tipo: tipoSeleccionado, meses, monto };
+        }
     });
+
+    if (!formValues) return;
+
+    const payload = {
+        tipo: formValues.tipo,
+        nombre: nombre,
+        monto_pagado: formValues.monto,
+        monto_total: formValues.monto,
+        meses: formValues.meses
+    };
+    const respuesta = await postData('/api/registrar_ingreso', payload);
+    if (respuesta.exito) {
+        msjExito(respuesta.mensaje);
+        setTimeout(() => location.reload(), 1000);
+    } else {
+        msjError(respuesta.error);
+    }
 }
 
 async function manejarGastoRapido() {
