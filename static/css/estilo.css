@@ -1,38 +1,55 @@
-/* --- Variables Globales de Color (tema oscuro) --- */
+/* --- Variables Globales (Paleta Minimalista: Gris Oxford, Acero y Tonos Suaves) --- */
 :root {
-    --color-fondo-principal: #121212;
-    --color-fondo-secundario: #222222;
-    --color-borde: #333333;
-    --color-primario: #1C70A0; /* Azul de tu app original */
-    --color-primario-hover: #2a90c9;
-    --color-texto-principal: #EAEAEA;
-    --color-texto-secundario: #AAAAAA;
-    --color-verde: #00CC00;
-    --color-rojo: #CC0000;
-    --color-amarillo: #FFFF88;
-    --color-naranja: #A0701C;
+    --color-fondo-principal: #16181b; /* Gris Oxford muy oscuro para el fondo */
+    --color-fondo-secundario: #212429; /* Gris Acero oscuro para los paneles */
+    --color-fondo-terciario: #2b2f36; /* Para hover y elementos destacados */
+    --color-borde: #343a40; /* Borde sutil, nada agresivo */
+    
+    --color-primario: #2980b9; /* Azul limpio y moderno */
+    --color-primario-hover: #3498db;
+    
+    --color-texto-principal: #f8f9fa; /* Blanco roto para no cansar la vista */
+    --color-texto-secundario: #adb5bd; /* Gris acero claro para textos secundarios */
+    
+    /* Estados de alerta más suaves y estéticos */
+    --color-verde: #2ecc71;
+    --color-rojo: #e74c3c;
+    --color-amarillo: #f1c40f;
+    --color-naranja: #e67e22;
+
+    /* Elementos de diseño moderno */
+    --radio-panel: 16px;
+    --radio-boton: 10px;
+    --sombra-suave: 0 4px 20px rgba(0, 0, 0, 0.2);
+    --sombra-hover: 0 8px 25px rgba(0, 0, 0, 0.4);
 }
 
 /* --- Estilos Generales --- */
 body {
-    font-family: Arial, sans-serif;
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Oxygen, Ubuntu, sans-serif;
     margin: 0;
     background-color: var(--color-fondo-principal);
     color: var(--color-texto-principal);
     display: flex;
     flex-direction: column;
     min-height: 100vh;
+    -webkit-font-smoothing: antialiased; /* Suaviza el texto en pantallas modernas */
 }
 
 main {
     flex-grow: 1;
-    padding: 20px;
+    padding: 30px 20px;
+    max-width: 1400px; /* Limita el ancho en pantallas gigantes para verse centrado */
+    margin: 0 auto;
+    width: 100%;
+    box-sizing: border-box;
 }
 
 h2, h3 {
-    color: var(--color-primario);
-    border-bottom: 2px solid var(--color-borde);
-    padding-bottom: 5px;
+    color: var(--color-texto-principal);
+    font-weight: 600;
+    margin-top: 0;
+    margin-bottom: 20px;
 }
 
 /* --- Encabezado y Navegación --- */
@@ -41,447 +58,327 @@ header {
     justify-content: space-between;
     align-items: center;
     background-color: var(--color-fondo-secundario);
-    padding: 10px 20px;
-    border-bottom: 2px solid var(--color-borde);
+    padding: 15px 30px;
+    box-shadow: 0 2px 10px rgba(0, 0, 0, 0.3);
 }
-header .logo img { height: 40px; }
+
+header .logo img { 
+    height: 45px; 
+    filter: drop-shadow(0 2px 4px rgba(0,0,0,0.2));
+}
+
 header nav ul {
     margin: 0;
     padding: 0;
     list-style: none;
     display: flex;
-    flex-wrap: wrap; /* Para que quepa en móviles */
-    gap: 10px;
+    flex-wrap: wrap;
+    gap: 8px;
 }
+
 header nav a {
     text-decoration: none;
     color: var(--color-texto-secundario);
-    font-size: 1.1em;
-    font-weight: bold;
-    padding: 10px 15px;
-    border-radius: 5px;
-    transition: background-color 0.3s, color 0.3s;
-}
-header nav a:hover {
-    background-color: var(--color-borde);
-    color: var(--color-texto-principal);
-}
-header nav a.active {
-    background-color: var(--color-primario);
-    color: var(--color-texto-principal);
-}
-.fecha-hora {
-    font-size: 1.1em;
-    font-weight: bold;
-    color: var(--color-texto-secundario);
+    font-size: 1.05em;
+    font-weight: 500;
+    padding: 8px 16px;
+    border-radius: var(--radio-boton);
+    transition: all 0.2s ease;
 }
 
-/* --- Pie de Página --- */
-footer {
-    text-align: center;
-    padding: 15px;
-    background-color: var(--color-fondo-secundario);
-    border-top: 2px solid var(--color-borde);
+header nav a:hover {
+    background-color: var(--color-fondo-terciario);
+    color: var(--color-texto-principal);
+}
+
+header nav a.active {
+    background-color: var(--color-primario);
+    color: #fff;
+    box-shadow: 0 4px 10px rgba(41, 128, 185, 0.3);
+}
+
+.fecha-hora {
+    font-size: 1em;
+    font-weight: 500;
     color: var(--color-texto-secundario);
-    font-size: 0.9em;
+    background: var(--color-fondo-terciario);
+    padding: 8px 16px;
+    border-radius: 20px; /* Diseño tipo "píldora" */
+}
+
+/* --- Paneles Generales (Minimalismo puro) --- */
+.panel-botones, .panel-resumen, .pagina-lista, .panel-stock, .panel-ajuste, .panel-formulario-inline, .card-deudor {
+    background-color: var(--color-fondo-secundario);
+    padding: 25px;
+    border-radius: var(--radio-panel);
+    box-shadow: var(--sombra-suave);
+    border: 1px solid rgba(255, 255, 255, 0.03); /* Efecto cristal muy leve */
 }
 
 /* --- Página de Registro (index.html) --- */
 .pagina-registro {
     display: flex;
-    flex-wrap: wrap; /* Para móviles */
-    gap: 20px;
+    flex-wrap: wrap;
+    gap: 25px;
 }
-.panel-botones {
-    flex: 3;
-    min-width: 300px;
-    background-color: var(--color-fondo-secundario);
-    padding: 20px;
-    border-radius: 8px;
-}
+
+.panel-botones { flex: 3; min-width: 300px; }
+.panel-resumen { flex: 1; min-width: 300px; display: flex; flex-direction: column; gap: 25px; }
+
 .grid-botones {
     display: grid;
-    grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+    grid-template-columns: repeat(auto-fill, minmax(140px, 1fr));
     gap: 15px;
 }
+
+/* --- Botones principales (Tarjetas limpias) --- */
 .btn-ingreso, .btn-gasto-rapido {
-    background-color: #333;
-    color: var(--color-texto-principal);
-    border: 1px solid var(--color-borde);
-    border-radius: 8px;
-    padding: 15px;
-    font-size: 1.1em;
-    font-weight: bold;
+    background-color: var(--color-fondo-terciario);
+    color: var(--color-texto-secundario);
+    border: 1px solid transparent;
+    border-radius: var(--radio-panel);
+    padding: 20px 10px;
+    font-size: 1.05em;
+    font-weight: 600;
     cursor: pointer;
-    transition: all 0.2s;
+    transition: all 0.3s ease;
     display: flex;
     flex-direction: column;
     align-items: center;
-    gap: 10px;
+    gap: 12px;
     min-height: 120px;
     justify-content: center;
     text-align: center;
 }
+
 .btn-ingreso img {
-    height: 40px;
-    filter: brightness(0) invert(1);
+    height: 38px;
+    filter: brightness(0) invert(0.8); /* Gris acero claro para los iconos */
+    transition: all 0.3s ease;
 }
+
 .btn-ingreso:hover {
-    background-color: var(--color-primario);
-    border-color: var(--color-primario-hover);
-    transform: translateY(-2px);
-}
-.btn-ingreso.btn-especial { background-color: var(--color-naranja); }
-.btn-ingreso.btn-especial:hover { background-color: #c99a47; }
-.btn-gasto-rapido { background-color: var(--color-rojo); }
-.btn-gasto-rapido:hover { background-color: #ff4444; }
-
-.panel-resumen {
-    flex: 1;
-    min-width: 300px;
-    background-color: var(--color-fondo-secundario);
-    padding: 20px;
-    border-radius: 8px;
-    display: flex;
-    flex-direction: column;
-    gap: 20px;
-}
-.resumen-cifras p { font-size: 1.3em; margin: 10px 0; }
-.resumen-cifras p.neto {
-    font-size: 1.8em;
-    font-weight: bold;
-    color: var(--color-verde);
-}
-.resumen-inventario h3 { margin-bottom: 10px; }
-.resumen-inventario p { font-size: 1.1em; color: var(--color-texto-secundario); margin: 5px 0; }
-.btn-cierre-dia {
-    background-color: var(--color-rojo);
+    background-color: #2a2e35;
+    border-color: var(--color-borde);
     color: var(--color-texto-principal);
-    font-size: 1.2em;
-    font-weight: bold;
-    padding: 15px;
-    border: none;
-    border-radius: 5px;
-    cursor: pointer;
-    width: 100%;
-    transition: background-color 0.3s;
-}
-.btn-cierre-dia:hover { background-color: #ff4444; }
-
-/* --- Páginas de Lista (Vencidos, Agenda) --- */
-.pagina-lista {
-    max-width: 900px;
-    margin: 0 auto;
-    background-color: var(--color-fondo-secundario);
-    padding: 20px;
-    border-radius: 8px;
-}
-.mensaje-vacio {
-    font-size: 1.5em;
-    text-align: center;
-    color: var(--color-verde);
-    padding: 40px;
-}
-.tabla-datos {
-    width: 100%;
-    border-collapse: collapse;
-    margin-top: 20px;
-}
-.tabla-datos th, .tabla-datos td {
-    border: 1px solid var(--color-borde);
-    padding: 12px;
-    text-align: left;
-}
-.tabla-datos th { background-color: #333; color: var(--color-primario); }
-.tabla-datos tr:nth-child(even) { background-color: #2a2a2a; }
-.tabla-datos tr:hover { background-color: #444; }
-.acciones-tabla { display: flex; flex-wrap: wrap; gap: 10px; }
-.btn-tabla {
-    padding: 8px 12px;
-    border: none;
-    border-radius: 5px;
-    cursor: pointer;
-    font-weight: bold;
-    color: rgb(124, 180, 202);
-    transition: background-color 0.3s;
-}
-.btn-pagar { background-color: #008800; }
-.btn-pagar:hover { background-color: var(--color-verde); }
-.btn-eliminar { background-color: var(--color-rojo); }
-.btn-eliminar:hover { background-color: #ff4444; }
-h3.grupo-mes {
-    background-color: #2a2a2a;
-    padding: 10px;
-    border-radius: 5px;
-    margin-top: 30px;
+    transform: translateY(-4px);
+    box-shadow: var(--sombra-hover);
 }
 
-/* --- Página de Inventario --- */
-.pagina-inventario {
-    max-width: 700px;
-    margin: 0 auto;
-    display: flex;
-    flex-direction: column;
-    gap: 20px;
-}
-.panel-stock, .panel-ajuste {
-    background-color: var(--color-fondo-secundario);
-    padding: 20px;
-    border-radius: 8px;
-}
-.lista-stock { list-style: none; padding: 0; }
-.lista-stock li {
-    font-size: 1.3em;
-    padding: 10px;
-    border-bottom: 1px solid var(--color-borde);
-}
-.lista-stock li:last-child { border-bottom: none; }
-.lista-stock li span { font-weight: bold; color: var(--color-texto-principal); }
-.lista-stock li.bajo-stock span { color: var(--color-rojo); font-weight: bold; }
+.btn-ingreso:hover img { filter: brightness(0) invert(1); }
 
-/* --- Estilos de Formularios --- */
-.panel-formulario-inline {
-    background-color: var(--color-fondo-secundario);
-    padding: 20px;
-    border-radius: 8px;
-    margin-bottom: 20px;
-}
-#form-ajustar-stock, #form-registro-manual, #form-agregar-deuda {
-    display: flex;
-    flex-wrap: wrap;
-    gap: 15px;
-    align-items: flex-end;
-}
-.control-formulario {
-    display: flex;
-    flex-direction: column;
-    gap: 5px;
-    flex: 1;
-    min-width: 150px;
-}
-.control-formulario label {
-    font-weight: bold;
+/* Acentos de botones */
+.btn-ingreso.btn-especial { color: var(--color-naranja); }
+.btn-ingreso.btn-especial:hover { border-color: var(--color-naranja); background-color: rgba(230, 126, 34, 0.1); }
+.btn-gasto-rapido { color: var(--color-rojo); }
+.btn-gasto-rapido:hover { border-color: var(--color-rojo); background-color: rgba(231, 76, 60, 0.1); }
+
+/* --- Resumen y Cifras Bancarias --- */
+.resumen-cifras p { 
+    font-size: 1.2em; 
+    margin: 15px 0; 
     color: var(--color-texto-secundario);
-}
-.control-formulario input,
-.control-formulario select {
-    padding: 10px;
-    font-size: 1.1em;
-    background-color: #333;
-    border: 1px solid var(--color-borde);
-    color: var(--color-texto-principal);
-    border-radius: 5px;
-}
-.botones-formulario {
-    display: flex;
-    gap: 10px;
-    margin-top: 10px;
-}
-.botones-formulario button { flex: 1; }
-
-/* --- Página Deudores --- */
-.pagina-deudores {
-    display: flex;
-    flex-wrap: wrap;
-    gap: 20px;
-}
-.pagina-deudores aside { /* El panel de formulario */
-    flex: 1;
-    min-width: 300px;
-    align-self: flex-start; /* Se alinea arriba */
-}
-.pagina-deudores aside form {
-    flex-direction: column; 
-    align-items: stretch;
-}
-.panel-lista-deudores {
-    flex: 2;
-    min-width: 300px;
-}
-.card-deudor {
-    background-color: var(--color-fondo-secundario);
-    border-radius: 8px;
-    margin-bottom: 15px;
-    overflow: hidden;
-}
-.deudor-header {
     display: flex;
     justify-content: space-between;
-    align-items: center;
-    background-color: #2a2a2a;
-    padding: 10px 15px;
-    flex-wrap: wrap; /* Para acomodar botones */
-    gap: 10px;
 }
-.deudor-header h3 {
-    color: var(--color-primario-hover);
-    border: none;
-    margin: 0;
-    flex-grow: 1; /* Ocupa el espacio disponible */
+
+.resumen-cifras span { color: var(--color-texto-principal); font-weight: 600; }
+
+.resumen-cifras p.neto {
+    font-size: 1.6em;
+    margin-top: 25px;
+    padding-top: 15px;
+    border-top: 1px solid var(--color-borde);
 }
-.deudor-header .total-deuda {
-    font-size: 1.2em;
-    font-weight: bold;
+.resumen-cifras p.neto span { color: var(--color-verde); font-weight: 700; }
+
+.btn-cierre-dia {
+    background-color: rgba(231, 76, 60, 0.1);
     color: var(--color-rojo);
-    margin-left: auto; /* Empuja a la derecha */
-    padding-left: 10px;
-}
-/* --- Botones Extra Deudores --- */
-.btn-anadir-deuda {
-    background-color: var(--color-naranja);
-    font-size: 0.9em;
-}
-.btn-anadir-deuda:hover {
-    background-color: #c99a47;
-}
-
-.tabla-deudas-interna {
-    width: 100%;
-    border-collapse: collapse;
-}
-.tabla-deudas-interna th, .tabla-deudas-interna td {
-    padding: 12px;
-    text-align: left;
-    border-bottom: 1px solid var(--color-borde);
-}
-.tabla-deudas-interna tr:last-child td {
-    border-bottom: none;
-}
-.tabla-deudas-interna th {
-    font-size: 0.9em;
-    color: var(--color-texto-secundario);
-}
-
-/* --- Modal (Pop-up Personalizado) --- */
-.modal-backdrop {
-    position: fixed;
-    top: 0; left: 0;
-    width: 100%; height: 100%;
-    background-color: rgba(0, 0, 0, 0.7);
-    z-index: 100;
-}
-.modal {
-    position: fixed;
-    top: 50%; left: 50%;
-    transform: translate(-50%, -50%);
-    background-color: var(--color-fondo-secundario);
-    padding: 25px;
-    border-radius: 8px;
-    z-index: 101;
-    width: 90%;
-    max-width: 500px;
-    border: 1px solid var(--color-borde);
-}
-.modal h3 {
-    margin-top: 0;
-}
-.modal-contenido {
-    margin-bottom: 20px;
-}
-.modal-contenido .control-formulario {
-    margin-bottom: 15px;
-}
-.modal-grid-botones {
-    display: grid;
-    grid-template-columns: 1fr 1fr;
-    gap: 10px;
-    margin-bottom: 15px;
-}
-.modal-grid-botones button {
-    padding: 12px;
-    font-size: 1em;
-    font-weight: bold;
+    font-size: 1.1em;
+    font-weight: 600;
+    padding: 16px;
+    border: 1px solid rgba(231, 76, 60, 0.3);
+    border-radius: var(--radio-boton);
     cursor: pointer;
-    border: 1px solid #555;
-    background-color: #333;
-    color: var(--color-texto-principal);
-    border-radius: 5px;
-}
-.modal-grid-botones button:hover {
-    background-color: var(--color-naranja);
-}
-.modal-grid-botones button.tipo-seleccionado {
-    background-color: var(--color-primario);
-    border-color: var(--color-primario-hover);
-}
-
-.modal-acciones {
-    display: flex;
-    justify-content: flex-end;
-    gap: 10px;
-}
-
-/* --- Estilos para Formulario Deudores (en Modal o Página) --- */
-.control-formulario-radio {
-    display: flex;
-    align-items: center;
-    gap: 10px;
     width: 100%;
-    padding: 5px 0;
-}
-.control-formulario-radio label {
-    font-weight: bold;
-    color: var(--color-texto-secundario);
-    cursor: pointer;
-}
-.control-formulario-radio input[type="radio"] {
-    width: 18px;
-    height: 18px;
+    transition: all 0.3s ease;
 }
 
-.campos-condicionales {
-    display: flex;
-    flex-wrap: wrap;
-    gap: 15px;
-    width: 100%;
-    padding: 10px;
-    background-color: #2a2a2a;
-    border-radius: 5px;
-    margin-top: 5px;
+.btn-cierre-dia:hover {
+    background-color: var(--color-rojo);
+    color: #fff;
+    box-shadow: 0 4px 15px rgba(231, 76, 60, 0.4);
 }
 
-/* --- PERSONALIZACIÓN DE SWEETALERT2 (TEMA OSCURO) --- */
-div:where(.swal2-container) div:where(.swal2-popup) {
-    background-color: var(--color-fondo-secundario) !important;
-    color: var(--color-texto-principal) !important;
-    border: 1px solid var(--color-borde);
-}
-div:where(.swal2-container) .swal2-title,
-div:where(.swal2-container) .swal2-html-container {
-    color: var(--color-texto-principal) !important;
-}
-div:where(.swal2-container) input.swal2-input {
-    background-color: #333 !important;
-    color: white !important;
-    border-color: #555 !important;
-}
-div:where(.swal2-container) .swal2-confirm {
-    background-color: var(--color-primario) !important;
-}
-div:where(.swal2-container) .swal2-deny, 
-div:where(.swal2-container) .swal2-cancel {
-    background-color: var(--color-rojo) !important;
-}
 /* --- Botón Ojo y Modo Privacidad (App Bancaria) --- */
 .btn-ojo {
-    background: none;
-    border: none;
+    background: var(--color-fondo-terciario);
+    border: 1px solid var(--color-borde);
+    border-radius: 50%;
     color: var(--color-texto-secundario);
     cursor: pointer;
-    padding: 5px;
-    transition: color 0.3s;
+    padding: 8px;
+    width: 40px;
+    height: 40px;
+    transition: all 0.3s ease;
     display: flex;
     align-items: center;
     justify-content: center;
 }
 .btn-ojo:hover {
-    color: var(--color-primario);
+    color: var(--color-texto-principal);
+    background: var(--color-borde);
 }
 .cifra-bancaria {
     transition: filter 0.3s ease, opacity 0.3s ease;
 }
 .cifra-bancaria.censurado {
-    filter: blur(6px); /* El truco mágico del difuminado */
-    opacity: 0.6;
-    user-select: none; /* Evita que el usuario seleccione y copie el texto oculto */
+    filter: blur(8px);
+    opacity: 0.5;
+    user-select: none;
+}
+
+/* --- Tablas (Limpias y sin bordes duros) --- */
+.tabla-datos {
+    width: 100%;
+    border-collapse: separate;
+    border-spacing: 0;
+    margin-top: 15px;
+}
+
+.tabla-datos th, .tabla-datos td {
+    padding: 15px;
+    text-align: left;
+    border-bottom: 1px solid var(--color-borde);
+}
+
+.tabla-datos th { 
+    color: var(--color-texto-secundario); 
+    font-weight: 600;
+    font-size: 0.9em;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    border-bottom: 2px solid var(--color-borde);
+}
+
+.tabla-datos tr { transition: background-color 0.2s ease; }
+.tabla-datos tr:hover { background-color: var(--color-fondo-terciario); }
+.tabla-datos tr:last-child td { border-bottom: none; }
+
+/* Botones dentro de tablas */
+.btn-tabla {
+    padding: 8px 14px;
+    border: none;
+    border-radius: var(--radio-boton);
+    cursor: pointer;
+    font-weight: 600;
+    font-size: 0.9em;
+    color: var(--color-primario);
+    background-color: rgba(41, 128, 185, 0.1);
+    transition: all 0.2s ease;
+}
+.btn-tabla:hover { background-color: var(--color-primario); color: white; }
+
+.btn-pagar { color: var(--color-verde); background-color: rgba(46, 204, 113, 0.1); }
+.btn-pagar:hover { background-color: var(--color-verde); color: white; }
+
+.btn-eliminar { color: var(--color-rojo); background-color: rgba(231, 76, 60, 0.1); }
+.btn-eliminar:hover { background-color: var(--color-rojo); color: white; }
+
+/* --- Formularios Minimalistas --- */
+.control-formulario {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+    flex: 1;
+    min-width: 150px;
+}
+
+.control-formulario label {
+    font-weight: 500;
+    font-size: 0.9em;
+    color: var(--color-texto-secundario);
+}
+
+.control-formulario input,
+.control-formulario select {
+    padding: 12px 15px;
+    font-size: 1em;
+    background-color: var(--color-fondo-terciario);
+    border: 1px solid var(--color-borde);
+    color: var(--color-texto-principal);
+    border-radius: var(--radio-boton);
+    transition: border-color 0.3s, box-shadow 0.3s;
+    outline: none;
+}
+
+.control-formulario input:focus,
+.control-formulario select:focus {
+    border-color: var(--color-primario);
+    box-shadow: 0 0 0 3px rgba(41, 128, 185, 0.2);
+}
+
+/* --- PERSONALIZACIÓN DE SWEETALERT2 (Completamente inmersivo) --- */
+div:where(.swal2-container) div:where(.swal2-popup) {
+    background-color: var(--color-fondo-secundario) !important;
+    color: var(--color-texto-principal) !important;
+    border-radius: var(--radio-panel) !important;
+    box-shadow: 0 10px 40px rgba(0,0,0,0.5) !important;
+    border: 1px solid var(--color-borde);
+}
+div:where(.swal2-container) .swal2-title { color: var(--color-texto-principal) !important; font-weight: 600 !important; }
+div:where(.swal2-container) .swal2-html-container { color: var(--color-texto-secundario) !important; }
+div:where(.swal2-container) input.swal2-input {
+    background-color: var(--color-fondo-terciario) !important;
+    color: white !important;
+    border: 1px solid var(--color-borde) !important;
+    border-radius: var(--radio-boton) !important;
+    box-shadow: none !important;
+}
+div:where(.swal2-container) input.swal2-input:focus {
+    border-color: var(--color-primario) !important;
+}
+div:where(.swal2-container) button.swal2-confirm {
+    background-color: var(--color-primario) !important;
+    border-radius: var(--radio-boton) !important;
+    font-weight: 600 !important;
+}
+div:where(.swal2-container) button.swal2-cancel {
+    background-color: var(--color-fondo-terciario) !important;
+    color: var(--color-texto-secundario) !important;
+    border-radius: var(--radio-boton) !important;
+}
+
+/* --- Deudores y Detalles Extra --- */
+.deudor-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    background-color: var(--color-fondo-terciario);
+    padding: 15px 20px;
+    border-bottom: 1px solid var(--color-borde);
+    border-radius: var(--radio-panel) var(--radio-panel) 0 0;
+}
+
+.deudor-header h3 { margin: 0; font-size: 1.1em; }
+.deudor-header .total-deuda { color: var(--color-rojo); font-weight: 600; font-size: 1.1em; }
+
+.btn-anadir-deuda {
+    background-color: rgba(230, 126, 34, 0.1);
+    color: var(--color-naranja);
+}
+.btn-anadir-deuda:hover { background-color: var(--color-naranja); color: white; }
+
+/* Grupos de meses en Agenda */
+h3.grupo-mes {
+    background-color: transparent;
+    color: var(--color-texto-secundario);
+    text-transform: uppercase;
+    font-size: 0.85em;
+    letter-spacing: 1px;
+    margin-top: 35px;
+    margin-bottom: 10px;
+    padding-bottom: 5px;
+    border-bottom: 1px solid var(--color-borde);
 }
