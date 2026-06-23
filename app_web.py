@@ -87,18 +87,24 @@ def agenda():
     hoy_str = (datetime.utcnow() - timedelta(hours=6)).strftime('%Y-%m-%d')
     lista_proximos = db.obtener_proximos_vencimientos(hoy_str)
     agenda_agrupada = {}
-    for nombre, fecha_venc_str in lista_proximos:
+    
+    # Desempaquetamos los 4 valores nuevos
+    for id_cliente, nombre, fecha_venc_str, telefono in lista_proximos:
         try:
             fecha_dt = datetime.strptime(fecha_venc_str, '%Y-%m-%d')
-            # Usar nombre del mes localizado
             mes_key = fecha_dt.strftime('%B de %Y').capitalize()
         except ValueError:
-            # Si la fecha está mal formateada, usarla directamente
              mes_key = f"Fecha inválida ({fecha_venc_str})"
 
         if mes_key not in agenda_agrupada:
             agenda_agrupada[mes_key] = []
-        agenda_agrupada[mes_key].append({"nombre": nombre, "fecha": fecha_venc_str})
+            
+        agenda_agrupada[mes_key].append({
+            "id": id_cliente,
+            "nombre": nombre, 
+            "fecha": fecha_venc_str,
+            "telefono": telefono if telefono else ""
+        })
     return render_template('agenda.html', agenda_agrupada=agenda_agrupada)
 
 @app.route('/inventario')
