@@ -999,3 +999,112 @@ async function manejarEditarDesdeAgenda(evento) {
         }
     }
 }
+
+document.addEventListener('DOMContentLoaded', () => {
+
+    // --- 1. LÓGICA DEL BUSCADOR DE AGENDA ---
+    const buscadorAgenda = document.getElementById('buscador-agenda');
+    if (buscadorAgenda) {
+        buscadorAgenda.addEventListener('keyup', function() {
+            const filtro = this.value.toLowerCase();
+            const filas = document.querySelectorAll('.fila-cliente');
+            
+            // Ocultar/Mostrar filas dependiendo de si coincide el nombre
+            filas.forEach(fila => {
+                const nombre = fila.querySelector('.nombre-cliente').textContent.toLowerCase();
+                if (nombre.includes(filtro)) {
+                    fila.style.display = '';
+                } else {
+                    fila.style.display = 'none';
+                }
+            });
+
+            // Ocultar la tarjeta entera del mes si todos sus clientes están ocultos
+            document.querySelectorAll('.mes-contenedor').forEach(mes => {
+                const filasVisibles = mes.querySelectorAll('.fila-cliente:not([style*="display: none"])');
+                if (filasVisibles.length === 0) {
+                    mes.style.display = 'none';
+                } else {
+                    mes.style.display = '';
+                }
+            });
+        });
+    }
+
+    // --- 2. REPARACIÓN DEL BOTÓN EDITAR EN AGENDA ---
+    // Usamos delegación de eventos en el 'body' para evitar que se pierda el clic
+    document.body.addEventListener('click', async function(e) {
+        if (e.target.classList.contains('btn-editar-agenda')) {
+            const id = e.target.getAttribute('data-id');
+            const nombreActual = e.target.getAttribute('data-nombre');
+            const fechaActual = e.target.getAttribute('data-fecha');
+            const telActual = e.target.getAttribute('data-telefono') || '';
+
+            const { value: formValues } = await Swal.fire({
+                title: 'Editar Cliente',
+                html: `
+                    <div style="text-align: left; margin-top: 15px; display: flex; flex-direction: column; gap: 15px;">
+                        <div>
+                            <label style="color: var(--color-texto-secundario); font-weight: bold; font-size: 0.9em;">Nombre Completo:</label>
+                            <input id="swal-edit-nombre" class="swal2-input" value="${nombreActual}" style="width: 90%; margin: 5px auto 0; display: block;">
+                        </div>
+                        <div>
+                            <label style="color: var(--color-texto-secundario); font-weight: bold; font-size: 0.9em;">Fecha de Vencimiento:</label>
+                            <input id="swal-edit-fecha" type="date" class="swal2-input" value="${fechaActual}" style="width: 90%; margin: 5px auto 0; display: block;">
+                        </div>
+                        <div>
+                            <label style="color: var(--color-texto-secundario); font-weight: bold; font-size: 0.9em;">WhatsApp (10 dígitos):</label>
+                            <input id="swal-edit-telefono" type="tel" class="swal2-input" value="${telActual}" placeholder="Ej: 7721234567" 
+                                maxlength="10" oninput="this.value = this.value.replace(/[^0-9]/g, '').slice(0, 10);" 
+                                style="width: 90%; margin: 5px auto 0; display: block; border-color: #4CAF50;">
+                        </div>
+                    </div>
+                `,
+                focusConfirm: false,
+                showCancelButton: true,
+                confirmButtonText: 'Guardar Cambios',
+                cancelButtonText: 'Cancelar',
+                confirmButtonColor: '#2980b9',
+                preConfirm: () => {
+                    return {
+                        nombre: document.getElementById('swal-edit-nombre').value,
+                        fecha: document.getElementById('swal-edit-fecha').value,
+                        telefono: document.getElementById('swal-edit-telefono').value
+                    }
+                }
+            });
+
+            if (formValues) {
+                // Aquí mandamos los datos al backend de Flask (asegúrate de que la ruta /editar_agenda exista)
+                try {
+                    const response = await fetch(`/editar_agenda/${id}`, {
+                        method: 'POST',
+                        headers: {
+                            'Content-Type': 'application/json',
+                        },
+                        body: JSON.stringify(formValues)
+                    });
+
+                    const data = await response.json();
+                    
+                    if (data.success) {
+                        Swal.fire({
+                            icon: 'success',
+                            title: '¡Actualizado!',
+                            text: 'El cliente ha sido modificado correctamente.',
+                            background: 'var(--color-fondo-secundario)',
+                            color: 'var(--color-texto-principal)'
+                        }).then(() => {
+                            window.location.reload();
+                        });
+                    } else {
+                        Swal.fire('Error', data.error || 'Hubo un problema al actualizar.', 'error');
+                    }
+                } catch (error) {
+                    Swal.fire('Error', 'No se pudo conectar con el servidor.', 'error');
+                }
+            }
+        }
+    });
+
+});
