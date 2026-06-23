@@ -75,9 +75,14 @@ document.addEventListener('DOMContentLoaded', () => {
         });
     }
 
-    // --- Página de Agenda (agenda.html) ---
+// --- Página de Agenda (agenda.html) ---
     if (document.getElementById('form-registro-manual')) {
         document.getElementById('form-registro-manual').addEventListener('submit', manejarRegistroManual);
+        
+        // Activar los botones de editar
+        document.querySelectorAll('.btn-editar-agenda').forEach(boton => {
+            boton.addEventListener('click', manejarEditarDesdeAgenda);
+        });
     }
 
     // --- NUEVO: Buscador para la página de Agenda ---
