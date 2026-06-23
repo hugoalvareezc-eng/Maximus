@@ -938,3 +938,64 @@ document.addEventListener('DOMContentLoaded', () => {
         }
     }
 });
+
+async function manejarEditarDesdeAgenda(evento) {
+    const btn = evento.currentTarget;
+    const id = btn.dataset.id;
+    const nombre = btn.dataset.nombre;
+    const fecha = btn.dataset.fecha;
+    const telefono = btn.dataset.telefono || "";
+
+    const { value: formValues } = await Swal.fire({
+        title: '✏️ Editar Cliente',
+        html: `
+            <div style="text-align: left; margin-top: 15px; display: flex; flex-direction: column; gap: 15px;">
+                <div>
+                    <label style="color: var(--color-texto-secundario); font-weight: bold; font-size: 0.9em;">Nombre Completo:</label>
+                    <input id="swal-edit-nombre" class="swal2-input" value="${nombre}" style="width: 90%; margin: 5px auto 0; display: block;">
+                </div>
+                <div>
+                    <label style="color: var(--color-texto-secundario); font-weight: bold; font-size: 0.9em;">Fecha de Vencimiento:</label>
+                    <input id="swal-edit-fecha" type="date" class="swal2-input" value="${fecha}" style="width: 90%; margin: 5px auto 0; display: block;">
+                </div>
+                <div>
+                    <label style="color: var(--color-texto-secundario); font-weight: bold; font-size: 0.9em;">WhatsApp (10 dígitos):</label>
+                    <input id="swal-edit-telefono" type="tel" class="swal2-input" value="${telefono}" placeholder="Ej: 7721234567" 
+                        maxlength="10" oninput="this.value = this.value.replace(/[^0-9]/g, '').slice(0, 10);" 
+                        style="width: 90%; margin: 5px auto 0; display: block; border-color: #4CAF50;">
+                    <small style="color: #666; display: block; text-align: center; margin-top: 5px;">Solo números. No agregues +52</small>
+                </div>
+            </div>
+        `,
+        focusConfirm: false,
+        showCancelButton: true,
+        confirmButtonText: '💾 Guardar Cambios',
+        cancelButtonText: 'Cancelar',
+        confirmButtonColor: '#1C70A0',
+        preConfirm: () => {
+            const n = document.getElementById('swal-edit-nombre').value.trim();
+            const f = document.getElementById('swal-edit-fecha').value;
+            const t = document.getElementById('swal-edit-telefono').value.trim();
+            
+            if (!n || !f) {
+                Swal.showValidationMessage('El nombre y la fecha son obligatorios');
+                return false;
+            }
+            if (t.length > 0 && t.length !== 10) {
+                Swal.showValidationMessage('El número de teléfono debe tener exactamente 10 dígitos numéricos');
+                return false;
+            }
+            return { id: id, nombre: n, fecha: f, telefono: t };
+        }
+    });
+
+    if (formValues) {
+        const respuesta = await postData('/api/editar_cliente', formValues);
+        if (respuesta.exito) {
+            await Swal.fire({ title: '¡Actualizado!', text: respuesta.mensaje, icon: 'success', timer: 1500, showConfirmButton: false });
+            location.reload();
+        } else {
+            msjError(respuesta.error);
+        }
+    }
+}
