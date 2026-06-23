@@ -223,11 +223,32 @@ def obtener_proximos_vencimientos(fecha_actual):
     conn = crear_conexion()
     if conn is None: return []
     cursor = conn.cursor()
-    cursor.execute("SELECT nombre, fecha_vencimiento FROM clientes WHERE fecha_vencimiento > %s ORDER BY fecha_vencimiento ASC", (fecha_actual,))
+    # Modificado: Ahora traemos el id y el telefono también
+    cursor.execute("SELECT id, nombre, fecha_vencimiento, telefono FROM clientes WHERE fecha_vencimiento > %s ORDER BY fecha_vencimiento ASC", (fecha_actual,))
     proximos = cursor.fetchall()
     cursor.close()
     conn.close()
     return proximos
+
+def actualizar_cliente_completo(cliente_id, nombre, fecha_vencimiento_str, telefono):
+    """Actualiza todos los datos de un cliente desde el botón de editar."""
+    conn = crear_conexion()
+    if conn is None: return False
+    nombre_limpio = nombre.strip().title()
+    try:
+        cursor = conn.cursor()
+        cursor.execute(
+            "UPDATE clientes SET nombre = %s, fecha_vencimiento = %s, telefono = %s WHERE id = %s",
+            (nombre_limpio, fecha_vencimiento_str, telefono, cliente_id)
+        )
+        conn.commit()
+        cursor.close()
+        return True
+    except Exception as e:
+        print(f"Error al actualizar cliente completo: {e}", file=sys.stderr)
+        return False
+    finally:
+        conn.close()
     
 def eliminar_cliente(nombre):
     conn = crear_conexion()
