@@ -33,18 +33,36 @@
     {% else %}
         {% for mes, clientes in agenda_agrupada.items() %}
             <h3 class="grupo-mes">{{ mes }}</h3>
-            <table class="tabla-datos">
+<table class="tabla-datos">
                 <thead>
                     <tr>
                         <th>Nombre</th>
                         <th>Fecha de Vencimiento</th>
+                        <th>WhatsApp</th>
+                        <th style="text-align: center;">Acciones</th>
                     </tr>
                 </thead>
                 <tbody>
                     {% for cliente in clientes %}
                     <tr>
-                        <td>{{ cliente.nombre }}</td>
+                        <td><strong>{{ cliente.nombre }}</strong></td>
                         <td>{{ cliente.fecha }}</td>
+                        <td>
+                            {% if cliente.telefono %}
+                                📱 <a href="https://wa.me/52{{ cliente.telefono }}" target="_blank" style="color: #4CAF50; text-decoration: none; font-weight: bold;">{{ cliente.telefono }}</a>
+                            {% else %}
+                                <span style="color: #777; font-style: italic;">Sin registro</span>
+                            {% endif %}
+                        </td>
+                        <td style="text-align: center;">
+                            <button class="btn-tabla btn-editar-agenda" style="background-color: var(--color-primario); color: white;" 
+                                    data-id="{{ cliente.id }}" 
+                                    data-nombre="{{ cliente.nombre }}" 
+                                    data-fecha="{{ cliente.fecha }}" 
+                                    data-telefono="{{ cliente.telefono }}">
+                                ✏️ Editar
+                            </button>
+                        </td>
                     </tr>
                     {% endfor %}
                 </tbody>
