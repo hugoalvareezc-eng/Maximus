@@ -933,3 +933,68 @@ document.addEventListener('DOMContentLoaded', () => {
         }
     }
 });
+
+function activarEdicion(btn) {
+    const fila = btn.closest('tr');
+    const celdas = fila.querySelectorAll('.editable');
+    const esEdicion = fila.classList.contains('editando');
+
+    if (!esEdicion) {
+        // 1. Cambiar el texto a campos de entrada (inputs)
+        celdas.forEach(celda => {
+            const valorActual = celda.innerText.trim();
+            const campo = celda.getAttribute('data-field');
+            
+            // Si es fecha, usamos el input tipo date para mejor UI
+            const tipoInput = campo === 'fecha_vencimiento' ? 'date' : 'text';
+            
+            celda.innerHTML = `<input type="${tipoInput}" class="input-inline" value="${valorActual}">`;
+        });
+        
+        // Cambiar icono a "Guardar" (un check discreto)
+        btn.innerHTML = `<svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#2ecc71" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"></polyline></svg>`;
+        fila.classList.add('editando');
+        
+    } else {
+        // 2. Guardar los datos y volver a modo texto
+        const idCliente = fila.getAttribute('data-id');
+        const datosActualizados = {};
+
+        celdas.forEach(celda => {
+            const input = celda.querySelector('input');
+            const valorNuevo = input.value;
+            const campo = celda.getAttribute('data-field');
+            
+            datosActualizados[campo] = valorNuevo;
+            celda.innerHTML = valorNuevo; // Devolver a texto normal
+        });
+
+        // Restaurar icono de edición
+        btn.innerHTML = `<svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 20h9"></path><path d="M16.5 3.5a2.121 2.121 0 0 1 3 3L7 19l-4 1 1-4L16.5 3.5z"></path></svg>`;
+        fila.classList.remove('editando');
+
+        // 3. Enviar a tu backend en Python
+        actualizarEnBaseDeDatos(idCliente, datosActualizados);
+    }
+}
+
+function actualizarEnBaseDeDatos(id, datos) {
+    // Asegúrate de que esta ruta coincida con la de tu app_web.py
+    fetch(`/actualizar_cliente_agenda/${id}`, {
+        method: 'POST', 
+        headers: {
+            'Content-Type': 'application/json',
+        },
+        body: JSON.stringify(datos)
+    })
+    .then(response => response.json())
+    .then(data => {
+        if(data.success) {
+            console.log('Cliente actualizado correctamente');
+            // Opcional: mostrar un pequeño toast/notificación discreta
+        } else {
+            console.error('Error al actualizar');
+        }
+    })
+    .catch(error => console.error('Error en la petición:', error));
+}
