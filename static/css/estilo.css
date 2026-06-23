@@ -729,6 +729,12 @@ h3.grupo-mes::before {
    ================================================================ */
 .acciones-cierre { margin-top: auto; }
 
+/* Clase utilitaria para el buscador de agenda */
+.fila-oculta { display: none !important; }
+
+/* nav-bottom oculta en escritorio — ANTES del @media para que el media query la pueda pisar */
+.nav-bottom { display: none; }
+
 /* ================================================================
    ▼▼▼  RESPONSIVE — MÓVIL  ▼▼▼
    ================================================================ */
@@ -889,14 +895,8 @@ h3.grupo-mes::before {
     .btn-ingreso, .btn-gasto-rapido { font-size: 0.72em; min-height: 78px; }
 }
 
-/* ================================================================
-   OCULTAR nav-bottom en escritorio
-   ================================================================ */
-.nav-bottom { display: none; }
+/* (nav-bottom display:none movido antes del @media) */
 
-
-/* Clase utilitaria para el buscador de agenda */
-.fila-oculta { display: none !important; }
 
 /* ================================================================
    MODAL — ESTILOS INTERNOS (control-formulario-radio, etc.)
