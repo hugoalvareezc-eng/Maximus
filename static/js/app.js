@@ -86,12 +86,13 @@ document.addEventListener('DOMContentLoaded', () => {
         buscadorAgenda.addEventListener('input', function() {
             const filtro = this.value.trim().toLowerCase();
             document.querySelectorAll('.fila-cliente').forEach(fila => {
-                const nombre = fila.querySelector('.nombre-cliente').textContent.toLowerCase();
-                fila.classList.toggle('fila-oculta', filtro !== '' && !nombre.includes(filtro));
+                const nombre = fila.querySelector('.nombre-cliente strong').textContent.trim().toLowerCase();
+                const visible = filtro === '' || nombre.includes(filtro);
+                fila.style.display = visible ? '' : 'none';
             });
             document.querySelectorAll('.mes-contenedor').forEach(mes => {
-                const hayVisibles = mes.querySelectorAll('.fila-cliente:not(.fila-oculta)').length > 0;
-                mes.classList.toggle('fila-oculta', !hayVisibles);
+                const hayVisibles = [...mes.querySelectorAll('.fila-cliente')].some(f => f.style.display !== 'none');
+                mes.style.display = hayVisibles ? '' : 'none';
             });
         });
     }
