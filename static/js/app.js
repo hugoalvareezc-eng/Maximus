@@ -80,7 +80,23 @@ document.addEventListener('DOMContentLoaded', () => {
         formRegistroManual.addEventListener('submit', manejarRegistroManual);
     }
 
-    // Buscador de Agenda movido a oninput en agenda.html
+    // Buscador en Vivo de la Agenda
+    const buscadorAgenda = document.getElementById('buscador-agenda');
+    if (buscadorAgenda) {
+        buscadorAgenda.addEventListener('input', function() {
+            const normalizar = str => str.normalize('NFD').replace(/[\u0300-\u036f]/g, '').toLowerCase().trim();
+            const filtro = normalizar(this.value);
+            document.querySelectorAll('.fila-cliente').forEach(fila => {
+                const nombre = normalizar(fila.querySelector('.nombre-cliente strong').textContent);
+                const visible = filtro === '' || nombre.includes(filtro);
+                fila.style.display = visible ? '' : 'none';
+            });
+            document.querySelectorAll('.mes-contenedor').forEach(mes => {
+                const hayVisibles = [...mes.querySelectorAll('.fila-cliente')].some(f => f.style.display !== 'none');
+                mes.style.display = hayVisibles ? '' : 'none';
+            });
+        });
+    }
 
     // Delegación de Eventos para el Botón de Editar en la Agenda
     document.body.addEventListener('click', async function(e) {
