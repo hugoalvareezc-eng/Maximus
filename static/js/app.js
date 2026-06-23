@@ -85,13 +85,10 @@ document.addEventListener('DOMContentLoaded', () => {
     if (buscadorAgenda) {
         buscadorAgenda.addEventListener('input', function() {
             const filtro = this.value.trim().toLowerCase();
-            const filas = document.querySelectorAll('.fila-cliente');
-
-            filas.forEach(fila => {
+            document.querySelectorAll('.fila-cliente').forEach(fila => {
                 const nombre = fila.querySelector('.nombre-cliente').textContent.toLowerCase();
                 fila.classList.toggle('fila-oculta', filtro !== '' && !nombre.includes(filtro));
             });
-
             document.querySelectorAll('.mes-contenedor').forEach(mes => {
                 const hayVisibles = mes.querySelectorAll('.fila-cliente:not(.fila-oculta)').length > 0;
                 mes.classList.toggle('fila-oculta', !hayVisibles);
@@ -491,10 +488,10 @@ async function manejarOtrosPagos() {
     const titulo = `Pago Especial para ${nombre}`;
     const contenido = `
         <p>Seleccione el tipo de membresía especial:</p>
-        <div class="modal-grid-botones" id="modal-botones-otros">
-            <button data-tipo="Anualidad" data-meses="12">Anualidad</button>
-            <button data-tipo="Semestre" data-meses="6">Semestre</button>
-            <button data-tipo="Otro (Meses)">Otro (Meses)</button>
+        <div style="display:flex; gap:8px; flex-wrap:wrap; margin-bottom:16px;" id="modal-botones-otros">
+            <button class="btn-selector-modal" data-tipo="Anualidad" data-meses="12">📅 Anualidad<br><small style="font-weight:400;opacity:0.8;">12 meses</small></button>
+            <button class="btn-selector-modal" data-tipo="Semestre" data-meses="6">📆 Semestre<br><small style="font-weight:400;opacity:0.8;">6 meses</small></button>
+            <button class="btn-selector-modal" data-tipo="Otro (Meses)">✏️ Otro<br><small style="font-weight:400;opacity:0.8;">(Meses)</small></button>
         </div>
         <div id="campos-otros-meses" style="display: none;">
             <div class="control-formulario">
@@ -698,12 +695,14 @@ function mostrarModalPagoVencido(evento) {
         btn.addEventListener('click', (e) => {
             // Resetear todos
             document.querySelectorAll('#modal-botones-pago button').forEach(b => {
+                b.classList.remove('tipo-seleccionado');
                 b.style.borderColor = 'var(--color-borde)';
                 b.style.background  = 'var(--color-fondo-terciario)';
                 b.style.color       = 'var(--color-texto-secundario)';
             });
             // Marcar el seleccionado
             const btnActual = e.currentTarget;
+            btnActual.classList.add('tipo-seleccionado');
             btnActual.style.borderColor = 'var(--color-primario)';
             btnActual.style.background  = 'rgba(45, 140, 219, 0.18)';
             btnActual.style.color       = '#fff';
