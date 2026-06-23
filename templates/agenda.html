@@ -1,32 +1,34 @@
 {% extends "base.html" %}
 
 {% block content %}
-<div class="container mt-4">
-    <h2 class="mb-4 text-light">Agenda de Clientes</h2>
+<div class="container mt-5">
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <h2 style="color: #bdc3c7; font-weight: 300; letter-spacing: 1px;">Agenda de Clientes</h2>
+    </div>
 
-    <!-- Tabla de Agenda -->
-    <div class="table-responsive">
-        <table class="table table-dark table-hover align-middle">
-            <thead>
+    <!-- Contenedor de la tabla con estilo minimalista -->
+    <div class="table-responsive" style="background-color: #2c3e50; border-radius: 8px; overflow: hidden; box-shadow: 0 4px 6px rgba(0,0,0,0.3);">
+        <table class="table mb-0" style="color: #ecf0f1; border-collapse: collapse; width: 100%;">
+            <thead style="background-color: #1a252f; border-bottom: 2px solid #34495e;">
                 <tr>
-                    <th scope="col">Nombre</th>
-                    <th scope="col">Teléfono</th>
-                    <th scope="col">Vencimiento</th>
-                    <th scope="col" class="text-center">Acciones</th>
+                    <th scope="col" style="padding: 15px; font-weight: 500; color: #95a5a6;">Nombre</th>
+                    <th scope="col" style="padding: 15px; font-weight: 500; color: #95a5a6;">Teléfono</th>
+                    <th scope="col" style="padding: 15px; font-weight: 500; color: #95a5a6;">Vencimiento</th>
+                    <th scope="col" class="text-center" style="padding: 15px; font-weight: 500; color: #95a5a6;">Editar</th>
                 </tr>
             </thead>
             <tbody>
-                <!-- Iteración sobre los datos de la BD -->
+                <!-- Iteración sobre los datos de Supabase -->
                 {% for cliente in clientes %}
-                <tr data-id="{{ cliente.id }}">
-                    <!-- Celdas Editables -->
-                    <td class="editable" data-field="nombre">{{ cliente.nombre }}</td>
-                    <td class="editable" data-field="telefono">{{ cliente.telefono }}</td>
-                    <td class="editable" data-field="fecha_vencimiento">{{ cliente.fecha_vencimiento }}</td>
+                <tr data-id="{{ cliente.id }}" style="border-bottom: 1px solid #34495e; transition: background-color 0.3s;">
+                    
+                    <td class="editable" data-field="nombre" style="padding: 15px; vertical-align: middle;">{{ cliente.nombre }}</td>
+                    <td class="editable" data-field="telefono" style="padding: 15px; vertical-align: middle;">{{ cliente.telefono or '' }}</td>
+                    <td class="editable" data-field="fecha_vencimiento" style="padding: 15px; vertical-align: middle;">{{ cliente.fecha_vencimiento or '' }}</td>
                     
                     <!-- Botón discreto de acción -->
-                    <td class="acciones text-center">
-                        <button class="btn-editar-discreto" onclick="activarEdicion(this)" title="Editar fila">
+                    <td class="acciones text-center" style="padding: 15px; vertical-align: middle;">
+                        <button class="btn-editar-discreto" onclick="activarEdicion(this)" title="Modificar cliente">
                             <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
                                 <path d="M12 20h9"></path>
                                 <path d="M16.5 3.5a2.121 2.121 0 0 1 3 3L7 19l-4 1 1-4L16.5 3.5z"></path>
@@ -36,7 +38,9 @@
                 </tr>
                 {% else %}
                 <tr>
-                    <td colspan="4" class="text-center text-muted">No hay clientes registrados en la agenda.</td>
+                    <td colspan="4" class="text-center" style="padding: 30px; color: #7f8c8d;">
+                        No hay clientes registrados en la agenda en este momento.
+                    </td>
                 </tr>
                 {% endfor %}
             </tbody>
@@ -44,50 +48,56 @@
     </div>
 </div>
 
-<!-- Estilos integrados para la edición en línea -->
+<!-- Estilos integrados (Minimalista y Oscuro) -->
 <style>
+    /* Efecto hover suave en las filas */
+    tbody tr:hover {
+        background-color: #34495e !important;
+    }
+
     /* Botón discreto con tono acero */
     .btn-editar-discreto {
         background: transparent;
         border: none;
-        color: #5d6d7e; 
+        color: #7f8c8d; 
         cursor: pointer;
-        padding: 6px;
-        opacity: 0.6;
-        transition: all 0.3s ease;
+        padding: 5px;
+        border-radius: 4px;
+        transition: all 0.2s ease;
     }
 
     .btn-editar-discreto:hover {
-        opacity: 1;
         color: #ecf0f1; 
-        transform: scale(1.1);
+        background-color: rgba(255, 255, 255, 0.05);
+        transform: scale(1.05);
     }
 
     /* Inputs oscuros para la edición en línea */
     .input-inline {
-        background-color: #1a252f; /* Fondo muy oscuro para el input */
-        border: 1px solid #34495e;
+        background-color: #1a252f; 
+        border: 1px solid #7f8c8d;
         color: #ecf0f1;
-        padding: 5px 8px;
+        padding: 6px 10px;
         border-radius: 4px;
         font-size: 0.95em;
         width: 100%;
         box-sizing: border-box;
         outline: none;
-        transition: border-color 0.3s ease;
+        transition: border-color 0.3s ease, box-shadow 0.3s ease;
     }
 
     .input-inline:focus {
-        border-color: #3498db; /* Resalte sutil azul/acero */
+        border-color: #bdc3c7; 
+        box-shadow: 0 0 5px rgba(189, 195, 199, 0.3);
     }
 
-    /* Para mantener la celda estable al cambiar a input */
+    /* Tamaño mínimo para que las celdas no colapsen al editar */
     td.editable {
-        min-width: 150px;
+        min-width: 140px;
     }
 </style>
 
-<!-- Script para manejar la lógica de edición -->
+<!-- Script para manejar la edición y envío a Supabase -->
 <script>
     function activarEdicion(btn) {
         const fila = btn.closest('tr');
@@ -95,46 +105,49 @@
         const esEdicion = fila.classList.contains('editando');
 
         if (!esEdicion) {
-            // 1. Cambiar el texto a campos de entrada (inputs)
+            // 1. Convertir texto a inputs
             celdas.forEach(celda => {
                 const valorActual = celda.innerText.trim();
                 const campo = celda.getAttribute('data-field');
                 
-                // Si es fecha, usamos el input tipo date
-                const tipoInput = campo === 'fecha_vencimiento' ? 'date' : 'text';
+                let tipoInput = 'text';
+                if (campo === 'fecha_vencimiento') tipoInput = 'date';
+                if (campo === 'telefono') tipoInput = 'tel';
                 
                 celda.innerHTML = `<input type="${tipoInput}" class="input-inline" value="${valorActual}">`;
             });
             
-            // Cambiar icono a "Guardar" (un check verde)
+            // Cambiar el icono a "Guardar" (Check)
             btn.innerHTML = `<svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#2ecc71" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"></polyline></svg>`;
             fila.classList.add('editando');
             
         } else {
-            // 2. Guardar los datos y volver a modo texto
+            // 2. Recolectar datos y volver a modo texto
             const idCliente = fila.getAttribute('data-id');
             const datosActualizados = {};
 
             celdas.forEach(celda => {
                 const input = celda.querySelector('input');
-                const valorNuevo = input.value;
-                const campo = celda.getAttribute('data-field');
-                
-                datosActualizados[campo] = valorNuevo;
-                celda.innerHTML = valorNuevo; // Devolver a texto normal
+                if (input) {
+                    const valorNuevo = input.value;
+                    const campo = celda.getAttribute('data-field');
+                    
+                    datosActualizados[campo] = valorNuevo;
+                    celda.innerHTML = valorNuevo; // Devolver a texto normal
+                }
             });
 
-            // Restaurar icono original de edición
+            // Restaurar icono de lápiz original
             btn.innerHTML = `<svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 20h9"></path><path d="M16.5 3.5a2.121 2.121 0 0 1 3 3L7 19l-4 1 1-4L16.5 3.5z"></path></svg>`;
             fila.classList.remove('editando');
 
-            // 3. Enviar a tu backend
-            actualizarEnBaseDeDatos(idCliente, datosActualizados);
+            // 3. Ejecutar petición al backend
+            actualizarEnSupabase(idCliente, datosActualizados);
         }
     }
 
-    function actualizarEnBaseDeDatos(id, datos) {
-        // Asegúrate de crear la ruta en app_web.py para manejar este POST
+    function actualizarEnSupabase(id, datos) {
+        // Llama a la ruta en tu archivo Python (app_web.py o gimnasio_crud.py)
         fetch(`/actualizar_cliente/${id}`, {
             method: 'POST', 
             headers: {
@@ -144,15 +157,14 @@
         })
         .then(response => response.json())
         .then(data => {
-            if(data.success) {
-                console.log('Actualizado correctamente en la BD.');
-            } else {
-                alert('Hubo un error al actualizar los datos en la base de datos.');
+            if(!data.success) {
+                console.error('Error del servidor:', data.error);
+                alert('No se pudo actualizar en la base de datos.');
             }
         })
         .catch(error => {
-            console.error('Error en la petición:', error);
-            alert('Error de conexión con el servidor.');
+            console.error('Error de red:', error);
+            alert('Error de conexión.');
         });
     }
 </script>
