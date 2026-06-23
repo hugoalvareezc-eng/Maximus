@@ -508,3 +508,21 @@ def obtener_historial(fecha_inicio, fecha_fin):
         return [], 0.0, 0.0
     finally:
         conn.close()
+
+def actualizar_cliente_completo(cliente_id, nombre, fecha, telefono):
+    """Actualiza todos los datos de un cliente desde la Agenda"""
+    try:
+        # Preparamos los datos a enviar a Supabase
+        datos = {
+            "nombre": nombre,
+            "fecha_vencimiento": fecha,  # Cambia esto por "fecha" si tu columna en Supabase se llama solo "fecha"
+            "telefono": telefono
+        }
+        
+        # Actualizamos la tabla de clientes (asegúrate de que tu tabla se llame 'clientes')
+        respuesta = supabase.table("clientes").update(datos).eq("id", cliente_id).execute()
+        
+        return True
+    except Exception as e:
+        print(f"Error al actualizar cliente desde agenda: {e}")
+        return False
