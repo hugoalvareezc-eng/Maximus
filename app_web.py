@@ -485,6 +485,27 @@ def api_editar_cliente():
         return jsonify({"exito": False, "error": "Datos inválidos."}), 400
     except Exception as e:
         return jsonify({"exito": False, "error": str(e)}), 500
+
+def actualizar_cliente_completo(cliente_id, nombre, fecha_vencimiento_str, telefono):
+    """Actualiza todos los datos de un cliente desde el botón de editar en Agenda."""
+    conn = crear_conexion()
+    if conn is None: return False
+    nombre_limpio = nombre.strip().title()
+    try:
+        cursor = conn.cursor()
+        # Consulta SQL pura usando psycopg2
+        cursor.execute(
+            "UPDATE clientes SET nombre = %s, fecha_vencimiento = %s, telefono = %s WHERE id = %s",
+            (nombre_limpio, fecha_vencimiento_str, telefono, cliente_id)
+        )
+        conn.commit()
+        cursor.close()
+        return True
+    except Exception as e:
+        print(f"Error al actualizar cliente completo: {e}", file=sys.stderr)
+        return False
+    finally:
+        if conn: conn.close()
 # --- Ejecutar la Aplicación ---
 if __name__ == '__main__':
     # Cambiar debug=False para producción real
