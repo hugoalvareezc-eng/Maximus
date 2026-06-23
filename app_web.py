@@ -453,6 +453,19 @@ def api_verificar_password():
             return jsonify({"exito": False, "error": "Contraseña incorrecta."}), 401
     except Exception as e:
         return jsonify({"exito": False, "error": str(e)}), 500
+
+@app.route('/actualizar_cliente_agenda/<int:id>', methods=['POST'])
+def actualizar_cliente_agenda(id):
+    datos = request.get_json()
+    nombre = datos.get('nombre')
+    telefono = datos.get('telefono')
+    fecha = datos.get('fecha_vencimiento')
+    
+    # Aquí va tu lógica de actualización en la BD (ejecutar UPDATE)
+    # db.execute("UPDATE clientes SET nombre=?, telefono=?, fecha_vencimiento=? WHERE id=?", 
+    #            (nombre, telefono, fecha, id))
+    
+    return jsonify({"success": True, "mensaje": "Actualizado correctamente"})
         
 # --- Ejecutar la Aplicación ---
 if __name__ == '__main__':
