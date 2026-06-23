@@ -515,20 +515,29 @@ def obtener_historial(fecha_inicio, fecha_fin):
     finally:
         conn.close()
 
-def actualizar_cliente_completo(cliente_id, nombre, fecha, telefono):
-    """Actualiza todos los datos de un cliente desde la Agenda"""
+def actualizar_cliente_completo(cliente_id, nombre, fecha_vencimiento_str, telefono):
+    """Actualiza todos los datos de un cliente desde el botón de editar en Agenda."""
+    conn = crear_conexion()
+    if conn is None: return False
+    nombre_limpio = nombre.strip().title()
+    
+    # LA MAGIA ANTI-ERRORES: 
+    # Si el teléfono viene vacío desde la web, lo convertimos a 'None' (que en SQL es NULL)
+    # Así evitamos que la base de datos explote si la columna es numérica.
+    if not telefono or telefono.strip() == "":
+        telefono = None
+        
     try:
-        # Preparamos los datos a enviar a Supabase
-        datos = {
-            "nombre": nombre,
-            "fecha_vencimiento": fecha,  # Cambia esto por "fecha" si tu columna en Supabase se llama solo "fecha"
-            "telefono": telefono
-        }
-        
-        # Actualizamos la tabla de clientes (asegúrate de que tu tabla se llame 'clientes')
-        respuesta = supabase.table("clientes").update(datos).eq("id", cliente_id).execute()
-        
+        cursor = conn.cursor()
+        cursor.execute(
+            "UPDATE clientes SET nombre = %s, fecha_vencimiento = %s, telefono = %s WHERE id = %s",
+            (nombre_limpio, fecha_vencimiento_str, telefono, cliente_id)
+        )
+        conn.commit()
+        cursor.close()
         return True
     except Exception as e:
-        print(f"Error al actualizar cliente desde agenda: {e}")
+        print(f"Error al actualizar cliente completo: {e}", file=sys.stderr)
         return False
+    finally:
+        if conn: conn.close()
