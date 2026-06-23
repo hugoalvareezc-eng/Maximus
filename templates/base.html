@@ -16,7 +16,7 @@
 <body>
     <header>
 <div class="logo">
-    <img src="{{ url_for('static', filename='imagenes/log.png') }}" alt="Logo Gimnasio" style="height: 90px;">
+    <img src="{{ url_for('static', filename='imagenes/logo.png') }}" alt="Logo Gimnasio" style="height: 95px;">
 </div>
         <nav>
             <ul>
@@ -39,6 +39,34 @@
     <footer>
         <p>Control - Maximus Gym</p>
     </footer>
+
+    <!-- Barra de navegación inferior (solo móvil) -->
+    <nav class="nav-bottom">
+        <a href="{{ url_for('index') }}" class="{{ 'active' if request.path == url_for('index') else '' }}">
+            <span class="nav-icon">💰</span>
+            <span class="nav-label">Registro</span>
+        </a>
+        <a href="{{ url_for('vencidos') }}" class="{{ 'active' if request.path == url_for('vencidos') else '' }}">
+            <span class="nav-icon">❌</span>
+            <span class="nav-label">Vencidos</span>
+        </a>
+        <a href="{{ url_for('deudores') }}" class="{{ 'active' if request.path == url_for('deudores') else '' }}">
+            <span class="nav-icon">💸</span>
+            <span class="nav-label">Deudores</span>
+        </a>
+        <a href="{{ url_for('agenda') }}" class="{{ 'active' if request.path == url_for('agenda') else '' }}">
+            <span class="nav-icon">🗓️</span>
+            <span class="nav-label">Agenda</span>
+        </a>
+        <a href="{{ url_for('inventario') }}" class="{{ 'active' if request.path == url_for('inventario') else '' }}">
+            <span class="nav-icon">📦</span>
+            <span class="nav-label">Inventario</span>
+        </a>
+        <a href="{{ url_for('historial') }}" class="{{ 'active' if request.path == url_for('historial') else '' }}">
+            <span class="nav-icon">📊</span>
+            <span class="nav-label">Historial</span>
+        </a>
+    </nav>
 
     <div class="modal-backdrop" id="modal-backdrop" style="display: none;"></div>
     <div class="modal" id="modal-principal" style="display: none;">
