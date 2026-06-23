@@ -1,73 +1,59 @@
 {% extends "base.html" %}
+{% block title %}Agenda de Vencimientos - Gym{% endblock %}
 
 {% block content %}
 <div class="pagina-lista">
+    <h2>Próximos Vencimientos</h2>
     
-    <section class="panel-formulario-inline">
-        <h2>Registrar Vencimiento Manual</h2>
-        <form id="form-registro-manual">
-            <div class="control-formulario">
-                <label for="manual-nombre">Nombre:</label>
-                <input type="text" id="manual-nombre" placeholder="Nombre completo del cliente" required>
-            </div>
-            <div class="control-formulario">
-                <label for="manual-fecha">Nueva Fecha de Vencimiento:</label>
-                <input type="date" id="manual-fecha" required>
-            </div>
-            <button type="submit" class="btn-tabla">➕ Registrar / Actualizar</button>
-        </form>
-    </section>
-
-    <h2>🗓️ Próximos Vencimientos</h2>
-
-    <div style="background-color: #222; padding: 15px; border-radius: 8px; margin-bottom: 20px; border: 1px solid #333;">
-        <div class="control-formulario" style="width: 100%;">
-            <label for="buscador-agenda" style="color: #A0701C;">🔍 Buscar Cliente en Agenda:</label>
-            <input type="text" id="buscador-agenda" placeholder="Escribe el nombre aquí..." style="width: 100%; padding: 10px; font-size: 1.1em;">
-        </div>
-    </div>
-    {% if not agenda_agrupada %}
-        <div class="mensaje-vacio">
-            No hay pagos próximos registrados.
-        </div>
-    {% else %}
+    {% if agenda_agrupada %}
         {% for mes, clientes in agenda_agrupada.items() %}
+        <div class="mes-contenedor">
+            <!-- El mes ahora es una píldora flotante con efecto cristal y sticky -->
             <h3 class="grupo-mes">{{ mes }}</h3>
-<table class="tabla-datos">
-                <thead>
-                    <tr>
-                        <th>Nombre</th>
-                        <th>Fecha de Vencimiento</th>
-                        <th>WhatsApp</th>
-                        <th style="text-align: center;">Acciones</th>
-                    </tr>
-                </thead>
-                <tbody>
-                    {% for cliente in clientes %}
-                    <tr>
-                        <td><strong>{{ cliente.nombre }}</strong></td>
-                        <td>{{ cliente.fecha }}</td>
-                        <td>
-                            {% if cliente.telefono %}
-                                📱 <a href="https://wa.me/52{{ cliente.telefono }}" target="_blank" style="color: #4CAF50; text-decoration: none; font-weight: bold;">{{ cliente.telefono }}</a>
-                            {% else %}
-                                <span style="color: #777; font-style: italic;">Sin registro</span>
-                            {% endif %}
-                        </td>
-                        <td style="text-align: center;">
-                            <button class="btn-tabla btn-editar-agenda" style="background-color: var(--color-primario); color: white;" 
-                                    data-id="{{ cliente.id }}" 
-                                    data-nombre="{{ cliente.nombre }}" 
-                                    data-fecha="{{ cliente.fecha }}" 
-                                    data-telefono="{{ cliente.telefono }}">
-                                ✏️ Editar
-                            </button>
-                        </td>
-                    </tr>
-                    {% endfor %}
-                </tbody>
-            </table>
+            
+            <!-- La tabla va en su propia tarjeta separada -->
+            <div class="tabla-wrapper">
+                <div class="tabla-responsive">
+                    <table class="tabla-datos">
+                        <thead>
+                            <tr>
+                                <th>Nombre</th>
+                                <th>Fecha de Vencimiento</th>
+                                <th>WhatsApp</th>
+                                <th style="text-align: right;">Acciones</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for cliente in clientes %}
+                            <tr>
+                                <td><strong>{{ cliente.nombre }}</strong></td>
+                                <td>{{ cliente.fecha }}</td>
+                                <td>
+                                    {% if cliente.telefono %}
+                                        <a href="https://wa.me/52{{ cliente.telefono }}" target="_blank" class="link-whatsapp">{{ cliente.telefono }}</a>
+                                    {% else %}
+                                        <span class="texto-mudo">Sin registro</span>
+                                    {% endif %}
+                                </td>
+                                <td style="text-align: right;">
+                                    <button class="btn-tabla btn-editar-agenda" 
+                                            data-id="{{ cliente.id }}" 
+                                            data-nombre="{{ cliente.nombre }}" 
+                                            data-fecha="{{ cliente.fecha }}" 
+                                            data-telefono="{{ cliente.telefono }}">
+                                        Editar
+                                    </button>
+                                </td>
+                            </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
         {% endfor %}
+    {% else %}
+        <p style="color: var(--color-texto-secundario); font-style: italic;">No hay próximos vencimientos registrados.</p>
     {% endif %}
 </div>
 {% endblock %}
