@@ -730,6 +730,11 @@ h3.grupo-mes::before {
 .acciones-cierre { margin-top: auto; }
 
 /* ================================================================
+   OCULTAR nav-bottom en escritorio (ANTES del media query para que no lo pise)
+   ================================================================ */
+.nav-bottom { display: none; }
+
+/* ================================================================
    ▼▼▼  RESPONSIVE — MÓVIL  ▼▼▼
    ================================================================ */
 @media (max-width: 768px) {
@@ -889,10 +894,8 @@ h3.grupo-mes::before {
     .btn-ingreso, .btn-gasto-rapido { font-size: 0.72em; min-height: 78px; }
 }
 
-/* ================================================================
-   OCULTAR nav-bottom en escritorio
-   ================================================================ */
-.nav-bottom { display: none; }
+/* nav-bottom se oculta en escritorio — esta regla va ANTES del @media para que el media query pueda sobreescribirla */
+/* .nav-bottom { display: none; }  <-- movida arriba del @media (ver más abajo) */
 
 
 /* ================================================================
