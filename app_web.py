@@ -459,7 +459,32 @@ def api_verificar_password():
             return jsonify({"exito": False, "error": "Contraseña incorrecta."}), 401
     except Exception as e:
         return jsonify({"exito": False, "error": str(e)}), 500
+
+@app.route('/api/editar_cliente', methods=['POST'])
+def api_editar_cliente():
+    """API para guardar la edición de un cliente desde la Agenda."""
+    try:
+        data = request.json
+        cliente_id = int(data.get('id'))
+        nombre = data.get('nombre')
+        fecha = data.get('fecha')
+        telefono = data.get('telefono', '').strip()
+
+        if not nombre or not fecha:
+            return jsonify({"exito": False, "error": "El nombre y la fecha son obligatorios."}), 400
         
+        # Validar formato de la fecha
+        datetime.strptime(fecha, '%Y-%m-%d')
+
+        if db.actualizar_cliente_completo(cliente_id, nombre, fecha, telefono):
+            return jsonify({"exito": True, "mensaje": "Datos actualizados correctamente."})
+        else:
+            return jsonify({"exito": False, "error": "Error al actualizar en la base de datos."}), 500
+            
+    except ValueError:
+        return jsonify({"exito": False, "error": "Datos inválidos."}), 400
+    except Exception as e:
+        return jsonify({"exito": False, "error": str(e)}), 500
 # --- Ejecutar la Aplicación ---
 if __name__ == '__main__':
     # Cambiar debug=False para producción real
