@@ -4,14 +4,45 @@
 {% block content %}
 <div class="pagina-lista">
     <h2>Próximos Vencimientos</h2>
-    
+
+    <!-- PANEL SUPERIOR: Buscador y Registro Manual -->
+    <div style="display: flex; gap: 20px; flex-wrap: wrap; margin-bottom: 35px;">
+        
+        <!-- Buscador -->
+        <div class="panel-ajuste" style="flex: 1; min-width: 250px; padding: 20px;">
+            <h3 style="font-size: 1.1em; margin-bottom: 15px;">Buscar Cliente</h3>
+            <input type="text" id="buscador-agenda" placeholder="Buscar por nombre..." 
+                   style="width: 100%; box-sizing: border-box; padding: 12px; border-radius: var(--radio-boton); border: 1px solid var(--color-borde); background: var(--color-fondo-terciario); color: white; outline: none;">
+        </div>
+
+        <!-- Registro Manual -->
+        <div class="panel-ajuste" style="flex: 2; min-width: 300px; padding: 20px;">
+            <h3 style="font-size: 1.1em; margin-bottom: 15px;">Registro Manual</h3>
+            <!-- Asegúrate de que el 'action' coincida con tu ruta de Flask (ej. /registrar_agenda o /agregar_agenda) -->
+            <form action="/registrar_agenda" method="POST" style="display: flex; gap: 10px; flex-wrap: wrap;">
+                <input type="text" name="nombre" placeholder="Nombre completo" required 
+                       style="flex: 2; min-width: 140px; padding: 12px; border-radius: var(--radio-boton); border: 1px solid var(--color-borde); background: var(--color-fondo-terciario); color: white; outline: none;">
+                
+                <input type="date" name="fecha" required 
+                       style="flex: 1; min-width: 120px; padding: 12px; border-radius: var(--radio-boton); border: 1px solid var(--color-borde); background: var(--color-fondo-terciario); color: white; outline: none;">
+                
+                <input type="text" name="telefono" placeholder="WhatsApp (10 dig)" maxlength="10" 
+                       oninput="this.value = this.value.replace(/[^0-9]/g, '').slice(0, 10);"
+                       style="flex: 1; min-width: 120px; padding: 12px; border-radius: var(--radio-boton); border: 1px solid var(--color-borde); background: var(--color-fondo-terciario); color: white; outline: none;">
+                
+                <button type="submit" class="btn-tabla" style="background-color: var(--color-primario); color: white; padding: 12px 20px;">
+                    Añadir
+                </button>
+            </form>
+        </div>
+    </div>
+
+    <!-- LISTA DE MESES Y TABLAS -->
     {% if agenda_agrupada %}
         {% for mes, clientes in agenda_agrupada.items() %}
         <div class="mes-contenedor">
-            <!-- El mes ahora es una píldora flotante con efecto cristal y sticky -->
             <h3 class="grupo-mes">{{ mes }}</h3>
             
-            <!-- La tabla va en su propia tarjeta separada -->
             <div class="tabla-wrapper">
                 <div class="tabla-responsive">
                     <table class="tabla-datos">
@@ -25,8 +56,9 @@
                         </thead>
                         <tbody>
                             {% for cliente in clientes %}
-                            <tr>
-                                <td><strong>{{ cliente.nombre }}</strong></td>
+                            <!-- Añadí la clase 'fila-cliente' para que el buscador de JS funcione -->
+                            <tr class="fila-cliente">
+                                <td class="nombre-cliente"><strong>{{ cliente.nombre }}</strong></td>
                                 <td>{{ cliente.fecha }}</td>
                                 <td>
                                     {% if cliente.telefono %}
