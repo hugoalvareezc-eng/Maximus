@@ -10,6 +10,17 @@
         <div class="panel-ajuste" style="flex: 1; min-width: 250px; padding: 20px;">
             <h3 style="font-size: 1.1em; margin-bottom: 15px;">Buscar Cliente</h3>
             <input type="text" id="buscador-agenda" placeholder="Buscar por nombre..." 
+                   oninput="
+                       const normalizar = str => str.normalize('NFD').replace(/[\u0300-\u036f]/g,'').toLowerCase().trim();
+                       const filtro = normalizar(this.value);
+                       document.querySelectorAll('.fila-cliente').forEach(f => {
+                           const nombre = normalizar(f.querySelector('.nombre-cliente strong').textContent);
+                           f.style.display = (filtro==='' || nombre.includes(filtro)) ? '' : 'none';
+                       });
+                       document.querySelectorAll('.mes-contenedor').forEach(mes => {
+                           mes.style.display = [...mes.querySelectorAll('.fila-cliente')].some(f => f.style.display!=='none') ? '' : 'none';
+                       });
+                   "
                    style="width: 100%; box-sizing: border-box; padding: 12px; border-radius: var(--radio-boton); border: 1px solid var(--color-borde); background: var(--color-fondo-terciario); color: white; outline: none;">
         </div>
 
