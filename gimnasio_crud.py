@@ -220,15 +220,21 @@ def obtener_vencidos(fecha_actual):
     return vencidos
     
 def obtener_proximos_vencimientos(fecha_actual):
+    """Obtiene los clientes próximos a vencer, incluyendo su ID y teléfono."""
     conn = crear_conexion()
     if conn is None: return []
-    cursor = conn.cursor()
-    # Modificado: Ahora traemos el id y el telefono también
-    cursor.execute("SELECT id, nombre, fecha_vencimiento, telefono FROM clientes WHERE fecha_vencimiento > %s ORDER BY fecha_vencimiento ASC", (fecha_actual,))
-    proximos = cursor.fetchall()
-    cursor.close()
-    conn.close()
-    return proximos
+    try:
+        cursor = conn.cursor()
+        # Aquí le decimos al SQL que traiga las 4 columnas exactas que tu app_web.py desempaqueta
+        cursor.execute("SELECT id, nombre, fecha_vencimiento, telefono FROM clientes WHERE fecha_vencimiento > %s ORDER BY fecha_vencimiento ASC", (fecha_actual,))
+        proximos = cursor.fetchall()
+        cursor.close()
+        return proximos
+    except Exception as e:
+        print(f"Error al obtener próximos vencimientos: {e}", file=sys.stderr)
+        return []
+    finally:
+        if conn: conn.close()
 
 def actualizar_cliente_completo(cliente_id, nombre, fecha_vencimiento_str, telefono):
     """Actualiza todos los datos de un cliente desde el botón de editar."""
