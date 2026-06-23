@@ -1,384 +1,55 @@
-/* --- Variables Globales (Paleta Minimalista: Gris Oxford, Acero y Tonos Suaves) --- */
-:root {
-    --color-fondo-principal: #16181b; /* Gris Oxford muy oscuro para el fondo */
-    --color-fondo-secundario: #212429; /* Gris Acero oscuro para los paneles */
-    --color-fondo-terciario: #2b2f36; /* Para hover y elementos destacados */
-    --color-borde: #343a40; /* Borde sutil, nada agresivo */
+{% extends "base.html" %}
+{% block title %}Agenda de Vencimientos - Gym{% endblock %}
+
+{% block content %}
+<div class="pagina-lista">
+    <h2>Próximos Vencimientos</h2>
     
-    --color-primario: #2980b9; /* Azul limpio y moderno */
-    --color-primario-hover: #3498db;
-    
-    --color-texto-principal: #f8f9fa; /* Blanco roto para no cansar la vista */
-    --color-texto-secundario: #adb5bd; /* Gris acero claro para textos secundarios */
-    
-    /* Estados de alerta más suaves y estéticos */
-    --color-verde: #2ecc71;
-    --color-rojo: #e74c3c;
-    --color-amarillo: #f1c40f;
-    --color-naranja: #e67e22;
-
-    /* Elementos de diseño moderno */
-    --radio-panel: 16px;
-    --radio-boton: 10px;
-    --sombra-suave: 0 4px 20px rgba(0, 0, 0, 0.2);
-    --sombra-hover: 0 8px 25px rgba(0, 0, 0, 0.4);
-}
-
-/* --- Estilos Generales --- */
-body {
-    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Oxygen, Ubuntu, sans-serif;
-    margin: 0;
-    background-color: var(--color-fondo-principal);
-    color: var(--color-texto-principal);
-    display: flex;
-    flex-direction: column;
-    min-height: 100vh;
-    -webkit-font-smoothing: antialiased; /* Suaviza el texto en pantallas modernas */
-}
-
-main {
-    flex-grow: 1;
-    padding: 30px 20px;
-    max-width: 1400px; /* Limita el ancho en pantallas gigantes para verse centrado */
-    margin: 0 auto;
-    width: 100%;
-    box-sizing: border-box;
-}
-
-h2, h3 {
-    color: var(--color-texto-principal);
-    font-weight: 600;
-    margin-top: 0;
-    margin-bottom: 20px;
-}
-
-/* --- Encabezado y Navegación --- */
-header {
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    background-color: var(--color-fondo-secundario);
-    padding: 15px 30px;
-    box-shadow: 0 2px 10px rgba(0, 0, 0, 0.3);
-}
-
-header .logo img { 
-    height: 45px; 
-    filter: drop-shadow(0 2px 4px rgba(0,0,0,0.2));
-}
-
-header nav ul {
-    margin: 0;
-    padding: 0;
-    list-style: none;
-    display: flex;
-    flex-wrap: wrap;
-    gap: 8px;
-}
-
-header nav a {
-    text-decoration: none;
-    color: var(--color-texto-secundario);
-    font-size: 1.05em;
-    font-weight: 500;
-    padding: 8px 16px;
-    border-radius: var(--radio-boton);
-    transition: all 0.2s ease;
-}
-
-header nav a:hover {
-    background-color: var(--color-fondo-terciario);
-    color: var(--color-texto-principal);
-}
-
-header nav a.active {
-    background-color: var(--color-primario);
-    color: #fff;
-    box-shadow: 0 4px 10px rgba(41, 128, 185, 0.3);
-}
-
-.fecha-hora {
-    font-size: 1em;
-    font-weight: 500;
-    color: var(--color-texto-secundario);
-    background: var(--color-fondo-terciario);
-    padding: 8px 16px;
-    border-radius: 20px; /* Diseño tipo "píldora" */
-}
-
-/* --- Paneles Generales (Minimalismo puro) --- */
-.panel-botones, .panel-resumen, .pagina-lista, .panel-stock, .panel-ajuste, .panel-formulario-inline, .card-deudor {
-    background-color: var(--color-fondo-secundario);
-    padding: 25px;
-    border-radius: var(--radio-panel);
-    box-shadow: var(--sombra-suave);
-    border: 1px solid rgba(255, 255, 255, 0.03); /* Efecto cristal muy leve */
-}
-
-/* --- Página de Registro (index.html) --- */
-.pagina-registro {
-    display: flex;
-    flex-wrap: wrap;
-    gap: 25px;
-}
-
-.panel-botones { flex: 3; min-width: 300px; }
-.panel-resumen { flex: 1; min-width: 300px; display: flex; flex-direction: column; gap: 25px; }
-
-.grid-botones {
-    display: grid;
-    grid-template-columns: repeat(auto-fill, minmax(140px, 1fr));
-    gap: 15px;
-}
-
-/* --- Botones principales (Tarjetas limpias) --- */
-.btn-ingreso, .btn-gasto-rapido {
-    background-color: var(--color-fondo-terciario);
-    color: var(--color-texto-secundario);
-    border: 1px solid transparent;
-    border-radius: var(--radio-panel);
-    padding: 20px 10px;
-    font-size: 1.05em;
-    font-weight: 600;
-    cursor: pointer;
-    transition: all 0.3s ease;
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    gap: 12px;
-    min-height: 120px;
-    justify-content: center;
-    text-align: center;
-}
-
-.btn-ingreso img {
-    height: 38px;
-    filter: brightness(0) invert(0.8); /* Gris acero claro para los iconos */
-    transition: all 0.3s ease;
-}
-
-.btn-ingreso:hover {
-    background-color: #2a2e35;
-    border-color: var(--color-borde);
-    color: var(--color-texto-principal);
-    transform: translateY(-4px);
-    box-shadow: var(--sombra-hover);
-}
-
-.btn-ingreso:hover img { filter: brightness(0) invert(1); }
-
-/* Acentos de botones */
-.btn-ingreso.btn-especial { color: var(--color-naranja); }
-.btn-ingreso.btn-especial:hover { border-color: var(--color-naranja); background-color: rgba(230, 126, 34, 0.1); }
-.btn-gasto-rapido { color: var(--color-rojo); }
-.btn-gasto-rapido:hover { border-color: var(--color-rojo); background-color: rgba(231, 76, 60, 0.1); }
-
-/* --- Resumen y Cifras Bancarias --- */
-.resumen-cifras p { 
-    font-size: 1.2em; 
-    margin: 15px 0; 
-    color: var(--color-texto-secundario);
-    display: flex;
-    justify-content: space-between;
-}
-
-.resumen-cifras span { color: var(--color-texto-principal); font-weight: 600; }
-
-.resumen-cifras p.neto {
-    font-size: 1.6em;
-    margin-top: 25px;
-    padding-top: 15px;
-    border-top: 1px solid var(--color-borde);
-}
-.resumen-cifras p.neto span { color: var(--color-verde); font-weight: 700; }
-
-.btn-cierre-dia {
-    background-color: rgba(231, 76, 60, 0.1);
-    color: var(--color-rojo);
-    font-size: 1.1em;
-    font-weight: 600;
-    padding: 16px;
-    border: 1px solid rgba(231, 76, 60, 0.3);
-    border-radius: var(--radio-boton);
-    cursor: pointer;
-    width: 100%;
-    transition: all 0.3s ease;
-}
-
-.btn-cierre-dia:hover {
-    background-color: var(--color-rojo);
-    color: #fff;
-    box-shadow: 0 4px 15px rgba(231, 76, 60, 0.4);
-}
-
-/* --- Botón Ojo y Modo Privacidad (App Bancaria) --- */
-.btn-ojo {
-    background: var(--color-fondo-terciario);
-    border: 1px solid var(--color-borde);
-    border-radius: 50%;
-    color: var(--color-texto-secundario);
-    cursor: pointer;
-    padding: 8px;
-    width: 40px;
-    height: 40px;
-    transition: all 0.3s ease;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-}
-.btn-ojo:hover {
-    color: var(--color-texto-principal);
-    background: var(--color-borde);
-}
-.cifra-bancaria {
-    transition: filter 0.3s ease, opacity 0.3s ease;
-}
-.cifra-bancaria.censurado {
-    filter: blur(8px);
-    opacity: 0.5;
-    user-select: none;
-}
-
-/* --- Tablas (Limpias y sin bordes duros) --- */
-.tabla-datos {
-    width: 100%;
-    border-collapse: separate;
-    border-spacing: 0;
-    margin-top: 15px;
-}
-
-.tabla-datos th, .tabla-datos td {
-    padding: 15px;
-    text-align: left;
-    border-bottom: 1px solid var(--color-borde);
-}
-
-.tabla-datos th { 
-    color: var(--color-texto-secundario); 
-    font-weight: 600;
-    font-size: 0.9em;
-    text-transform: uppercase;
-    letter-spacing: 0.5px;
-    border-bottom: 2px solid var(--color-borde);
-}
-
-.tabla-datos tr { transition: background-color 0.2s ease; }
-.tabla-datos tr:hover { background-color: var(--color-fondo-terciario); }
-.tabla-datos tr:last-child td { border-bottom: none; }
-
-/* Botones dentro de tablas */
-.btn-tabla {
-    padding: 8px 14px;
-    border: none;
-    border-radius: var(--radio-boton);
-    cursor: pointer;
-    font-weight: 600;
-    font-size: 0.9em;
-    color: var(--color-primario);
-    background-color: rgba(41, 128, 185, 0.1);
-    transition: all 0.2s ease;
-}
-.btn-tabla:hover { background-color: var(--color-primario); color: white; }
-
-.btn-pagar { color: var(--color-verde); background-color: rgba(46, 204, 113, 0.1); }
-.btn-pagar:hover { background-color: var(--color-verde); color: white; }
-
-.btn-eliminar { color: var(--color-rojo); background-color: rgba(231, 76, 60, 0.1); }
-.btn-eliminar:hover { background-color: var(--color-rojo); color: white; }
-
-/* --- Formularios Minimalistas --- */
-.control-formulario {
-    display: flex;
-    flex-direction: column;
-    gap: 8px;
-    flex: 1;
-    min-width: 150px;
-}
-
-.control-formulario label {
-    font-weight: 500;
-    font-size: 0.9em;
-    color: var(--color-texto-secundario);
-}
-
-.control-formulario input,
-.control-formulario select {
-    padding: 12px 15px;
-    font-size: 1em;
-    background-color: var(--color-fondo-terciario);
-    border: 1px solid var(--color-borde);
-    color: var(--color-texto-principal);
-    border-radius: var(--radio-boton);
-    transition: border-color 0.3s, box-shadow 0.3s;
-    outline: none;
-}
-
-.control-formulario input:focus,
-.control-formulario select:focus {
-    border-color: var(--color-primario);
-    box-shadow: 0 0 0 3px rgba(41, 128, 185, 0.2);
-}
-
-/* --- PERSONALIZACIÓN DE SWEETALERT2 (Completamente inmersivo) --- */
-div:where(.swal2-container) div:where(.swal2-popup) {
-    background-color: var(--color-fondo-secundario) !important;
-    color: var(--color-texto-principal) !important;
-    border-radius: var(--radio-panel) !important;
-    box-shadow: 0 10px 40px rgba(0,0,0,0.5) !important;
-    border: 1px solid var(--color-borde);
-}
-div:where(.swal2-container) .swal2-title { color: var(--color-texto-principal) !important; font-weight: 600 !important; }
-div:where(.swal2-container) .swal2-html-container { color: var(--color-texto-secundario) !important; }
-div:where(.swal2-container) input.swal2-input {
-    background-color: var(--color-fondo-terciario) !important;
-    color: white !important;
-    border: 1px solid var(--color-borde) !important;
-    border-radius: var(--radio-boton) !important;
-    box-shadow: none !important;
-}
-div:where(.swal2-container) input.swal2-input:focus {
-    border-color: var(--color-primario) !important;
-}
-div:where(.swal2-container) button.swal2-confirm {
-    background-color: var(--color-primario) !important;
-    border-radius: var(--radio-boton) !important;
-    font-weight: 600 !important;
-}
-div:where(.swal2-container) button.swal2-cancel {
-    background-color: var(--color-fondo-terciario) !important;
-    color: var(--color-texto-secundario) !important;
-    border-radius: var(--radio-boton) !important;
-}
-
-/* --- Deudores y Detalles Extra --- */
-.deudor-header {
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    background-color: var(--color-fondo-terciario);
-    padding: 15px 20px;
-    border-bottom: 1px solid var(--color-borde);
-    border-radius: var(--radio-panel) var(--radio-panel) 0 0;
-}
-
-.deudor-header h3 { margin: 0; font-size: 1.1em; }
-.deudor-header .total-deuda { color: var(--color-rojo); font-weight: 600; font-size: 1.1em; }
-
-.btn-anadir-deuda {
-    background-color: rgba(230, 126, 34, 0.1);
-    color: var(--color-naranja);
-}
-.btn-anadir-deuda:hover { background-color: var(--color-naranja); color: white; }
-
-/* Grupos de meses en Agenda */
-h3.grupo-mes {
-    background-color: transparent;
-    color: var(--color-texto-secundario);
-    text-transform: uppercase;
-    font-size: 0.85em;
-    letter-spacing: 1px;
-    margin-top: 35px;
-    margin-bottom: 10px;
-    padding-bottom: 5px;
-    border-bottom: 1px solid var(--color-borde);
-}
+    {% if agenda_agrupada %}
+        {% for mes, clientes in agenda_agrupada.items() %}
+        <div class="mes-contenedor">
+            <h3 class="grupo-mes">{{ mes }}</h3>
+            
+            <div class="tabla-responsive">
+                <table class="tabla-datos">
+                    <thead>
+                        <tr>
+                            <th>Nombre</th>
+                            <th>Fecha de Vencimiento</th>
+                            <th>WhatsApp</th>
+                            <th style="text-align: right;">Acciones</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for cliente in clientes %}
+                        <tr>
+                            <td><strong>{{ cliente.nombre }}</strong></td>
+                            <td>{{ cliente.fecha }}</td>
+                            <td>
+                                {% if cliente.telefono %}
+                                    <a href="https://wa.me/52{{ cliente.telefono }}" target="_blank" class="link-whatsapp">{{ cliente.telefono }}</a>
+                                {% else %}
+                                    <span class="texto-mudo">Sin registro</span>
+                                {% endif %}
+                            </td>
+                            <td style="text-align: right;">
+                                <button class="btn-tabla btn-editar-agenda" 
+                                        data-id="{{ cliente.id }}" 
+                                        data-nombre="{{ cliente.nombre }}" 
+                                        data-fecha="{{ cliente.fecha }}" 
+                                        data-telefono="{{ cliente.telefono }}">
+                                    Editar
+                                </button>
+                            </td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        </div>
+        {% endfor %}
+    {% else %}
+        <p>No hay próximos vencimientos registrados.</p>
+    {% endif %}
+</div>
+{% endblock %}
