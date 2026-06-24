@@ -1,963 +1,465 @@
-/* ================================================================
-   MAXIMUS GYM — Sistema de Control
-   Diseño: Oscuro profesional, optimizado para escritorio y móvil
-   ================================================================ */
-
-/* --- Variables Globales --- */
+/* --- Variables Globales de Color (tema oscuro) --- */
 :root {
-    --color-fondo-principal:   #13151a;
-    --color-fondo-secundario:  #1e2128;
-    --color-fondo-terciario:   #272b34;
-    --color-borde:             #30353f;
-    --color-borde-sutil:       rgba(255,255,255,0.04);
-
-    --color-primario:          #2d8cdb;
-    --color-primario-hover:    #3fa0f0;
-    --color-primario-glow:     rgba(45, 140, 219, 0.25);
-
-    --color-texto-principal:   #eef0f3;
-    --color-texto-secundario:  #8b95a1;
-    --color-texto-muted:       #555e6b;
-
-    --color-verde:   #27ae60;
-    --color-rojo:    #c0392b;
-    --color-amarillo:#d4ac0d;
-    --color-naranja: #d35400;
-
-    --color-verde-soft:   rgba(39, 174, 96, 0.12);
-    --color-rojo-soft:    rgba(192, 57, 43, 0.12);
-    --color-naranja-soft: rgba(211, 84, 0, 0.12);
-    --color-azul-soft:    rgba(45, 140, 219, 0.10);
-
-    --radio-panel:  14px;
-    --radio-boton:  9px;
-    --radio-pill:   999px;
-
-    --sombra-panel: 0 2px 16px rgba(0,0,0,0.3);
-    --sombra-hover: 0 8px 28px rgba(0,0,0,0.45);
-    --sombra-azul:  0 4px 20px rgba(45,140,219,0.3);
-
-    --transicion: 0.2s ease;
-
-    /* Altura del header para cálculos móviles */
-    --header-height: 64px;
-    --nav-bottom-height: 60px;
+    --color-fondo-principal: #121212;
+    --color-fondo-secundario: #222222;
+    --color-borde: #333333;
+    --color-primario: #1C70A0; /* Azul de tu app original */
+    --color-primario-hover: #2a90c9;
+    --color-texto-principal: #EAEAEA;
+    --color-texto-secundario: #AAAAAA;
+    --color-verde: #00CC00;
+    --color-rojo: #CC0000;
+    --color-amarillo: #FFFF88;
+    --color-naranja: #A0701C;
 }
 
-/* ================================================================
-   BASE
-   ================================================================ */
-*, *::before, *::after { box-sizing: border-box; }
-
+/* --- Estilos Generales --- */
 body {
-    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+    font-family: Arial, sans-serif;
     margin: 0;
     background-color: var(--color-fondo-principal);
     color: var(--color-texto-principal);
     display: flex;
     flex-direction: column;
     min-height: 100vh;
-    -webkit-font-smoothing: antialiased;
-    -moz-osx-font-smoothing: grayscale;
 }
 
 main {
     flex-grow: 1;
-    padding: 28px 24px;
-    max-width: 1440px;
-    margin: 0 auto;
-    width: 100%;
+    padding: 20px;
 }
 
-h2 {
-    color: var(--color-texto-principal);
-    font-weight: 700;
-    font-size: 1.35em;
-    margin-top: 0;
-    margin-bottom: 22px;
-    letter-spacing: -0.3px;
+h2, h3 {
+    color: var(--color-primario);
+    border-bottom: 2px solid var(--color-borde);
+    padding-bottom: 5px;
 }
 
-h3 {
-    color: var(--color-texto-principal);
-    font-weight: 600;
-    margin-top: 0;
-    margin-bottom: 16px;
-}
-
-/* ================================================================
-   HEADER — ESCRITORIO
-   ================================================================ */
+/* --- Encabezado y Navegación --- */
 header {
     display: flex;
     justify-content: space-between;
     align-items: center;
     background-color: var(--color-fondo-secundario);
-    padding: 0 28px;
-    height: var(--header-height);
-    box-shadow: 0 1px 0 var(--color-borde);
-    position: sticky;
-    top: 0;
-    z-index: 100;
+    padding: 10px 20px;
+    border-bottom: 2px solid var(--color-borde);
 }
-
-header .logo img {
-    height: 38px;
-    display: block;
-    filter: drop-shadow(0 2px 6px rgba(0,0,0,0.35));
-}
-
+header .logo img { height: 40px; }
 header nav ul {
     margin: 0;
     padding: 0;
     list-style: none;
     display: flex;
-    gap: 4px;
+    flex-wrap: wrap; /* Para que quepa en móviles */
+    gap: 10px;
 }
-
 header nav a {
     text-decoration: none;
     color: var(--color-texto-secundario);
-    font-size: 0.92em;
-    font-weight: 500;
-    padding: 7px 14px;
-    border-radius: var(--radio-boton);
-    transition: all var(--transicion);
-    white-space: nowrap;
-    display: flex;
-    align-items: center;
-    gap: 5px;
+    font-size: 1.1em;
+    font-weight: bold;
+    padding: 10px 15px;
+    border-radius: 5px;
+    transition: background-color 0.3s, color 0.3s;
 }
-
 header nav a:hover {
-    background-color: var(--color-fondo-terciario);
+    background-color: var(--color-borde);
     color: var(--color-texto-principal);
 }
-
 header nav a.active {
     background-color: var(--color-primario);
-    color: #fff;
-    box-shadow: var(--sombra-azul);
+    color: var(--color-texto-principal);
 }
-
 .fecha-hora {
-    font-size: 0.88em;
-    font-weight: 600;
+    font-size: 1.1em;
+    font-weight: bold;
     color: var(--color-texto-secundario);
-    background: var(--color-fondo-terciario);
-    padding: 6px 14px;
-    border-radius: var(--radio-pill);
-    border: 1px solid var(--color-borde);
-    white-space: nowrap;
-    font-variant-numeric: tabular-nums;
-    letter-spacing: 0.3px;
 }
 
-/* ================================================================
-   PANELES / TARJETAS — BASE
-   ================================================================ */
-.panel-botones,
-.panel-resumen,
-.pagina-lista,
-.panel-stock,
-.panel-ajuste,
-.panel-formulario-inline,
-.card-deudor {
+/* --- Pie de Página --- */
+footer {
+    text-align: center;
+    padding: 15px;
     background-color: var(--color-fondo-secundario);
-    padding: 24px;
-    border-radius: var(--radio-panel);
-    box-shadow: var(--sombra-panel);
-    border: 1px solid var(--color-borde-sutil);
+    border-top: 2px solid var(--color-borde);
+    color: var(--color-texto-secundario);
+    font-size: 0.9em;
 }
 
-/* ================================================================
-   PÁGINA REGISTRO (index.html)
-   ================================================================ */
+/* --- Página de Registro (index.html) --- */
 .pagina-registro {
     display: flex;
-    flex-wrap: wrap;
-    gap: 22px;
-    align-items: flex-start;
+    flex-wrap: wrap; /* Para móviles */
+    gap: 20px;
 }
-
-.panel-botones { flex: 3; min-width: 300px; }
-.panel-resumen  { flex: 1; min-width: 280px; display: flex; flex-direction: column; gap: 22px; }
-
+.panel-botones {
+    flex: 3;
+    min-width: 300px;
+    background-color: var(--color-fondo-secundario);
+    padding: 20px;
+    border-radius: 8px;
+}
 .grid-botones {
     display: grid;
-    grid-template-columns: repeat(auto-fill, minmax(130px, 1fr));
-    gap: 12px;
+    grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+    gap: 15px;
 }
-
-/* --- Botones de Ingreso --- */
 .btn-ingreso, .btn-gasto-rapido {
-    background-color: var(--color-fondo-terciario);
-    color: var(--color-texto-secundario);
+    background-color: #333;
+    color: var(--color-texto-principal);
     border: 1px solid var(--color-borde);
-    border-radius: var(--radio-panel);
-    padding: 18px 10px;
-    font-size: 0.92em;
-    font-weight: 600;
+    border-radius: 8px;
+    padding: 15px;
+    font-size: 1.1em;
+    font-weight: bold;
     cursor: pointer;
-    transition: all var(--transicion);
+    transition: all 0.2s;
     display: flex;
     flex-direction: column;
     align-items: center;
     gap: 10px;
-    min-height: 110px;
+    min-height: 120px;
     justify-content: center;
     text-align: center;
-    line-height: 1.3;
 }
-
 .btn-ingreso img {
-    height: 34px;
-    filter: brightness(0) invert(0.55);
-    transition: filter var(--transicion);
+    height: 40px;
+    filter: brightness(0) invert(1);
 }
-
 .btn-ingreso:hover {
-    background-color: var(--color-azul-soft);
-    border-color: var(--color-primario);
-    color: var(--color-texto-principal);
-    transform: translateY(-3px);
-    box-shadow: var(--sombra-hover);
+    background-color: var(--color-primario);
+    border-color: var(--color-primario-hover);
+    transform: translateY(-2px);
 }
+.btn-ingreso.btn-especial { background-color: var(--color-naranja); }
+.btn-ingreso.btn-especial:hover { background-color: #c99a47; }
+.btn-gasto-rapido { background-color: var(--color-rojo); }
+.btn-gasto-rapido:hover { background-color: #ff4444; }
 
-.btn-ingreso:hover img { filter: brightness(0) invert(1); }
-
-.btn-ingreso:active { transform: translateY(0); box-shadow: none; }
-
-.btn-ingreso.btn-especial { color: var(--color-naranja); border-color: transparent; }
-.btn-ingreso.btn-especial:hover { border-color: var(--color-naranja); background-color: var(--color-naranja-soft); }
-
-.btn-gasto-rapido { color: var(--color-rojo); border-color: transparent; }
-.btn-gasto-rapido:hover { border-color: var(--color-rojo); background-color: var(--color-rojo-soft); }
-
-/* --- Panel Resumen Diario --- */
-.resumen-cifras p {
-    font-size: 1.05em;
-    margin: 12px 0;
-    color: var(--color-texto-secundario);
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-}
-
-.resumen-cifras span { color: var(--color-texto-principal); font-weight: 700; }
-
-.resumen-cifras p.neto {
-    font-size: 1.4em;
-    margin-top: 18px;
-    padding-top: 14px;
-    border-top: 1px solid var(--color-borde);
-}
-
-.resumen-cifras p.neto span { color: var(--color-verde); }
-
-/* Inventario Rápido */
-.resumen-inventario h3 {
-    font-size: 0.88em;
-    text-transform: uppercase;
-    letter-spacing: 0.8px;
-    color: var(--color-texto-muted);
-    margin-bottom: 12px;
-}
-
-.resumen-inventario p {
-    display: flex;
-    justify-content: space-between;
-    font-size: 0.9em;
-    color: var(--color-texto-secundario);
-    margin: 7px 0;
-    padding: 6px 10px;
+.panel-resumen {
+    flex: 1;
+    min-width: 300px;
+    background-color: var(--color-fondo-secundario);
+    padding: 20px;
     border-radius: 8px;
-    background: var(--color-fondo-terciario);
-}
-
-/* Botón Ojo */
-.btn-ojo {
-    background: var(--color-fondo-terciario);
-    border: 1px solid var(--color-borde);
-    border-radius: 50%;
-    color: var(--color-texto-secundario);
-    cursor: pointer;
-    padding: 7px;
-    width: 36px;
-    height: 36px;
-    transition: all var(--transicion);
     display: flex;
-    align-items: center;
-    justify-content: center;
-    flex-shrink: 0;
+    flex-direction: column;
+    gap: 20px;
 }
-.btn-ojo:hover { color: var(--color-texto-principal); background: var(--color-borde); }
-
-.cifra-bancaria { transition: filter 0.35s ease, opacity 0.35s ease; }
-.cifra-bancaria.censurado { filter: blur(9px); opacity: 0.4; user-select: none; }
-
-/* Botón Cierre de Caja */
+.resumen-cifras p { font-size: 1.3em; margin: 10px 0; }
+.resumen-cifras p.neto {
+    font-size: 1.8em;
+    font-weight: bold;
+    color: var(--color-verde);
+}
+.resumen-inventario h3 { margin-bottom: 10px; }
+.resumen-inventario p { font-size: 1.1em; color: var(--color-texto-secundario); margin: 5px 0; }
 .btn-cierre-dia {
-    background-color: var(--color-rojo-soft);
-    color: var(--color-rojo);
-    font-size: 1em;
-    font-weight: 700;
+    background-color: var(--color-rojo);
+    color: var(--color-texto-principal);
+    font-size: 1.2em;
+    font-weight: bold;
     padding: 15px;
-    border: 1px solid rgba(192, 57, 43, 0.35);
-    border-radius: var(--radio-boton);
+    border: none;
+    border-radius: 5px;
     cursor: pointer;
     width: 100%;
-    transition: all var(--transicion);
-    letter-spacing: 0.5px;
-    text-transform: uppercase;
+    transition: background-color 0.3s;
 }
-.btn-cierre-dia:hover {
-    background-color: var(--color-rojo);
-    color: #fff;
-    box-shadow: 0 4px 16px rgba(192, 57, 43, 0.4);
-}
+.btn-cierre-dia:hover { background-color: #ff4444; }
 
-/* ================================================================
-   TABLAS
-   ================================================================ */
+/* --- Páginas de Lista (Vencidos, Agenda) --- */
+.pagina-lista {
+    max-width: 900px;
+    margin: 0 auto;
+    background-color: var(--color-fondo-secundario);
+    padding: 20px;
+    border-radius: 8px;
+}
+.mensaje-vacio {
+    font-size: 1.5em;
+    text-align: center;
+    color: var(--color-verde);
+    padding: 40px;
+}
 .tabla-datos {
     width: 100%;
-    border-collapse: separate;
-    border-spacing: 0;
-    margin-top: 12px;
+    border-collapse: collapse;
+    margin-top: 0;
 }
-
 .tabla-datos th, .tabla-datos td {
-    padding: 13px 16px;
+    border: 1px solid var(--color-borde);
+    padding: 12px;
     text-align: left;
-    border-bottom: 1px solid var(--color-borde);
-    vertical-align: middle;
 }
-
-.tabla-datos th {
-    color: var(--color-texto-muted);
-    font-weight: 600;
-    font-size: 0.78em;
-    text-transform: uppercase;
-    letter-spacing: 0.8px;
-    border-bottom: 1px solid var(--color-borde);
-    background: var(--color-fondo-secundario);
-    position: sticky;
-    top: var(--header-height);
-}
-
-.tabla-datos tr { transition: background-color var(--transicion); }
-.tabla-datos tbody tr:hover { background-color: var(--color-fondo-terciario); }
-.tabla-datos tr:last-child td { border-bottom: none; }
-
-/* ================================================================
-   BOTONES DE TABLA / ACCIÓN
-   ================================================================ */
+.tabla-datos th { background-color: #333; color: var(--color-primario); }
+.tabla-datos tr:nth-child(even) { background-color: #2a2a2a; }
+.tabla-datos tr:hover { background-color: #444; }
+.acciones-tabla { display: flex; flex-wrap: wrap; gap: 10px; }
 .btn-tabla {
-    padding: 7px 16px;
-    min-width: 80px;
-    white-space: nowrap;
-    border: 1px solid transparent;
-    border-radius: var(--radio-boton);
+    padding: 8px 12px;
+    border: none;
+    border-radius: 5px;
     cursor: pointer;
-    font-weight: 600;
-    font-size: 0.85em;
-    color: var(--color-primario);
-    background-color: var(--color-azul-soft);
-    transition: all var(--transicion);
-    display: inline-flex;
-    align-items: center;
-    justify-content: center;
-    gap: 5px;
+    font-weight: bold;
+    color: rgb(124, 180, 202);
+    transition: background-color 0.3s;
 }
-.btn-tabla:hover { background-color: var(--color-primario); color: white; }
-.btn-tabla:active { transform: scale(0.97); }
+.btn-pagar { background-color: #008800; }
+.btn-pagar:hover { background-color: var(--color-verde); }
+.btn-eliminar { background-color: var(--color-rojo); }
+.btn-eliminar:hover { background-color: #ff4444; }
+h3.grupo-mes {
+    background-color: #2a2a2a;
+    padding: 10px;
+    border-radius: 5px;
+    margin-top: 30px;
+    margin-bottom: 0;
+}
 
-.btn-pagar  { color: var(--color-verde); background-color: var(--color-verde-soft); }
-.btn-pagar:hover  { background-color: var(--color-verde); color: white; }
+/* --- Página de Inventario --- */
+.pagina-inventario {
+    max-width: 700px;
+    margin: 0 auto;
+    display: flex;
+    flex-direction: column;
+    gap: 20px;
+}
+.panel-stock, .panel-ajuste {
+    background-color: var(--color-fondo-secundario);
+    padding: 20px;
+    border-radius: 8px;
+}
+.lista-stock { list-style: none; padding: 0; }
+.lista-stock li {
+    font-size: 1.3em;
+    padding: 10px;
+    border-bottom: 1px solid var(--color-borde);
+}
+.lista-stock li:last-child { border-bottom: none; }
+.lista-stock li span { font-weight: bold; color: var(--color-texto-principal); }
+.lista-stock li.bajo-stock span { color: var(--color-rojo); font-weight: bold; }
 
-.btn-eliminar { color: var(--color-rojo); background-color: var(--color-rojo-soft); }
-.btn-eliminar:hover { background-color: var(--color-rojo); color: white; }
-
-.btn-anadir-deuda { color: var(--color-naranja); background-color: var(--color-naranja-soft); }
-.btn-anadir-deuda:hover { background-color: var(--color-naranja); color: white; }
-
-/* ================================================================
-   FORMULARIOS
-   ================================================================ */
+/* --- Estilos de Formularios --- */
+.panel-formulario-inline {
+    background-color: var(--color-fondo-secundario);
+    padding: 20px;
+    border-radius: 8px;
+    margin-bottom: 20px;
+}
+#form-ajustar-stock, #form-registro-manual, #form-agregar-deuda {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 15px;
+    align-items: flex-end;
+}
 .control-formulario {
     display: flex;
     flex-direction: column;
-    gap: 7px;
+    gap: 5px;
     flex: 1;
-    min-width: 140px;
+    min-width: 150px;
 }
-
 .control-formulario label {
-    font-weight: 500;
-    font-size: 0.83em;
+    font-weight: bold;
     color: var(--color-texto-secundario);
-    text-transform: uppercase;
-    letter-spacing: 0.4px;
 }
-
 .control-formulario input,
 .control-formulario select {
-    padding: 11px 14px;
-    font-size: 0.95em;
-    background-color: var(--color-fondo-terciario);
+    padding: 10px;
+    font-size: 1.1em;
+    background-color: #333;
     border: 1px solid var(--color-borde);
     color: var(--color-texto-principal);
-    border-radius: var(--radio-boton);
-    transition: border-color 0.25s, box-shadow 0.25s;
-    outline: none;
-    width: 100%;
+    border-radius: 5px;
 }
-
-.control-formulario input:focus,
-.control-formulario select:focus {
-    border-color: var(--color-primario);
-    box-shadow: 0 0 0 3px var(--color-primario-glow);
-}
-
 .botones-formulario {
     display: flex;
     gap: 10px;
-    flex-wrap: wrap;
-    margin-top: 4px;
+    margin-top: 10px;
 }
+.botones-formulario button { flex: 1; }
 
-/* ================================================================
-   MENSAJE VACÍO
-   ================================================================ */
-.mensaje-vacio {
-    text-align: center;
-    padding: 60px 20px;
-    color: var(--color-texto-muted);
-    font-size: 1.1em;
-    background: var(--color-fondo-secundario);
-    border-radius: var(--radio-panel);
-    border: 1px dashed var(--color-borde);
-}
-
-/* ================================================================
-   SWEETALERT2 — TEMA OSCURO
-   ================================================================ */
-div:where(.swal2-container) div:where(.swal2-popup) {
-    background-color: var(--color-fondo-secundario) !important;
-    color: var(--color-texto-principal) !important;
-    border-radius: var(--radio-panel) !important;
-    box-shadow: 0 16px 50px rgba(0,0,0,0.6) !important;
-    border: 1px solid var(--color-borde) !important;
-}
-div:where(.swal2-container) .swal2-title {
-    color: var(--color-texto-principal) !important;
-    font-weight: 700 !important;
-    font-size: 1.2em !important;
-}
-div:where(.swal2-container) .swal2-html-container {
-    color: var(--color-texto-secundario) !important;
-}
-div:where(.swal2-container) input.swal2-input,
-div:where(.swal2-container) select.swal2-select {
-    background-color: var(--color-fondo-terciario) !important;
-    color: var(--color-texto-principal) !important;
-    border: 1px solid var(--color-borde) !important;
-    border-radius: var(--radio-boton) !important;
-    box-shadow: none !important;
-}
-div:where(.swal2-container) input.swal2-input:focus {
-    border-color: var(--color-primario) !important;
-    box-shadow: 0 0 0 3px var(--color-primario-glow) !important;
-}
-div:where(.swal2-container) button.swal2-confirm {
-    background-color: var(--color-primario) !important;
-    border-radius: var(--radio-boton) !important;
-    font-weight: 700 !important;
-}
-div:where(.swal2-container) button.swal2-cancel {
-    background-color: var(--color-fondo-terciario) !important;
-    color: var(--color-texto-secundario) !important;
-    border-radius: var(--radio-boton) !important;
-}
-div:where(.swal2-container) .swal2-validation-message {
-    background: var(--color-rojo-soft) !important;
-    color: var(--color-rojo) !important;
-    border-radius: 8px !important;
-}
-
-/* ================================================================
-   MODAL PERSONALIZADO
-   ================================================================ */
-.modal-backdrop {
-    position: fixed;
-    inset: 0;
-    background: rgba(0,0,0,0.65);
-    backdrop-filter: blur(4px);
-    z-index: 200;
-}
-
-.modal {
-    position: fixed;
-    top: 50%;
-    left: 50%;
-    transform: translate(-50%, -50%);
-    background: var(--color-fondo-secundario);
-    border: 1px solid var(--color-borde);
-    border-radius: var(--radio-panel);
-    padding: 28px;
-    z-index: 201;
-    width: min(520px, 92vw);
-    max-height: 90vh;
-    overflow-y: auto;
-    box-shadow: 0 20px 60px rgba(0,0,0,0.6);
-}
-
-.modal h3 {
-    font-size: 1.1em;
-    margin-bottom: 20px;
-    padding-bottom: 14px;
-    border-bottom: 1px solid var(--color-borde);
-}
-
-.modal-acciones {
-    display: flex;
-    gap: 10px;
-    justify-content: flex-end;
-    margin-top: 22px;
-    padding-top: 16px;
-    border-top: 1px solid var(--color-borde);
-}
-
-/* ================================================================
-   DEUDORES
-   ================================================================ */
+/* --- Página Deudores --- */
 .pagina-deudores {
     display: flex;
-    gap: 22px;
     flex-wrap: wrap;
-    align-items: flex-start;
+    gap: 20px;
 }
-
-.panel-formulario-inline {
+.pagina-deudores aside { /* El panel de formulario */
     flex: 1;
-    min-width: 220px;
-    max-width: 300px;
+    min-width: 300px;
+    align-self: flex-start; /* Se alinea arriba */
 }
-
+.pagina-deudores aside form {
+    flex-direction: column; 
+    align-items: stretch;
+}
 .panel-lista-deudores {
-    flex: 3;
-    min-width: 280px;
-    display: flex;
-    flex-direction: column;
-    gap: 16px;
+    flex: 2;
+    min-width: 300px;
 }
-
 .card-deudor {
-    padding: 0;
+    background-color: var(--color-fondo-secundario);
+    border-radius: 8px;
+    margin-bottom: 15px;
     overflow: hidden;
 }
-
 .deudor-header {
     display: flex;
     justify-content: space-between;
     align-items: center;
-    flex-wrap: wrap;
+    background-color: #2a2a2a;
+    padding: 10px 15px;
+    flex-wrap: wrap; /* Para acomodar botones */
     gap: 10px;
-    background-color: var(--color-fondo-terciario);
-    padding: 14px 20px;
-    border-bottom: 1px solid var(--color-borde);
 }
-
-.deudor-header h3 { margin: 0; font-size: 1em; }
+.deudor-header h3 {
+    color: var(--color-primario-hover);
+    border: none;
+    margin: 0;
+    flex-grow: 1; /* Ocupa el espacio disponible */
+}
 .deudor-header .total-deuda {
+    font-size: 1.2em;
+    font-weight: bold;
     color: var(--color-rojo);
-    font-weight: 700;
-    font-size: 1em;
-    background: var(--color-rojo-soft);
-    padding: 4px 12px;
-    border-radius: var(--radio-pill);
-    border: 1px solid rgba(192,57,43,0.2);
+    margin-left: auto; /* Empuja a la derecha */
+    padding-left: 10px;
+}
+/* --- Botones Extra Deudores --- */
+.btn-anadir-deuda {
+    background-color: var(--color-naranja);
+    font-size: 0.9em;
+}
+.btn-anadir-deuda:hover {
+    background-color: #c99a47;
 }
 
 .tabla-deudas-interna {
     width: 100%;
     border-collapse: collapse;
 }
-
 .tabla-deudas-interna th, .tabla-deudas-interna td {
-    padding: 11px 20px;
+    padding: 12px;
     text-align: left;
     border-bottom: 1px solid var(--color-borde);
-    font-size: 0.9em;
-    vertical-align: middle;
 }
-
+.tabla-deudas-interna tr:last-child td {
+    border-bottom: none;
+}
 .tabla-deudas-interna th {
-    color: var(--color-texto-muted);
-    font-size: 0.78em;
-    text-transform: uppercase;
-    letter-spacing: 0.6px;
-    background: var(--color-fondo-secundario);
+    font-size: 0.9em;
+    color: var(--color-texto-secundario);
 }
 
-.tabla-deudas-interna tr:last-child td { border-bottom: none; }
-
-/* ================================================================
-   AGENDA
-   ================================================================ */
-.mes-contenedor {
-    margin-bottom: 44px;
-    position: relative;
+/* --- Modal (Pop-up Personalizado) --- */
+.modal-backdrop {
+    position: fixed;
+    top: 0; left: 0;
+    width: 100%; height: 100%;
+    background-color: rgba(0, 0, 0, 0.7);
+    z-index: 100;
 }
-
-h3.grupo-mes {
-    position: sticky;
-    top: calc(var(--header-height) + 12px);
-    z-index: 10;
-    background: rgba(30, 33, 40, 0.82);
-    backdrop-filter: blur(14px);
-    -webkit-backdrop-filter: blur(14px);
-    color: var(--color-texto-principal);
-    padding: 9px 22px;
-    border-radius: var(--radio-pill);
-    font-size: 0.95em;
-    font-weight: 700;
-    letter-spacing: 1.2px;
-    text-transform: uppercase;
-    margin-top: 0;
-    margin-bottom: 18px;
-    display: inline-flex;
-    align-items: center;
-    border: 1px solid rgba(255,255,255,0.07);
-    box-shadow: 0 4px 20px rgba(0,0,0,0.35);
-}
-
-h3.grupo-mes::before {
-    content: '';
-    display: inline-block;
-    width: 7px;
-    height: 7px;
-    background-color: var(--color-primario);
-    border-radius: 50%;
-    margin-right: 11px;
-    box-shadow: 0 0 8px var(--color-primario);
-}
-
-.tabla-wrapper {
+.modal {
+    position: fixed;
+    top: 50%; left: 50%;
+    transform: translate(-50%, -50%);
     background-color: var(--color-fondo-secundario);
-    border-radius: var(--radio-panel);
-    padding: 0;
+    padding: 25px;
+    border-radius: 8px;
+    z-index: 101;
+    width: 90%;
+    max-width: 500px;
     border: 1px solid var(--color-borde);
-    overflow: hidden;
+}
+.modal h3 {
+    margin-top: 0;
+}
+.modal-contenido {
+    margin-bottom: 20px;
+}
+.modal-contenido .control-formulario {
+    margin-bottom: 15px;
+}
+.modal-grid-botones {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 10px;
+    margin-bottom: 15px;
+}
+.modal-grid-botones button {
+    padding: 12px;
+    font-size: 1em;
+    font-weight: bold;
+    cursor: pointer;
+    border: 1px solid #555;
+    background-color: #333;
+    color: var(--color-texto-principal);
+    border-radius: 5px;
+}
+.modal-grid-botones button:hover {
+    background-color: var(--color-naranja);
+}
+.modal-grid-botones button.tipo-seleccionado {
+    background-color: var(--color-primario);
+    border-color: var(--color-primario-hover);
 }
 
-.tabla-responsive { overflow-x: auto; }
-
-.link-whatsapp {
-    color: var(--color-verde);
-    text-decoration: none;
-    font-weight: 600;
-    font-size: 0.88em;
-    padding: 4px 10px;
-    background-color: var(--color-verde-soft);
-    border-radius: 6px;
-    transition: all var(--transicion);
-    white-space: nowrap;
-    display: inline-flex;
-    align-items: center;
-    gap: 4px;
-}
-.link-whatsapp:hover { background-color: var(--color-verde); color: white; }
-
-.texto-mudo {
-    color: var(--color-texto-muted);
-    font-style: italic;
-    font-size: 0.88em;
-}
-
-/* ================================================================
-   INVENTARIO
-   ================================================================ */
-.pagina-inventario {
+.modal-acciones {
     display: flex;
-    flex-direction: column;
-    gap: 20px;
+    justify-content: flex-end;
+    gap: 10px;
 }
 
-.panel-stock { flex: 1; }
-
-.lista-stock {
-    list-style: none;
-    padding: 0;
-    margin: 0;
-    display: flex;
-    flex-direction: column;
-    gap: 8px;
-}
-
-.lista-stock li {
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    padding: 11px 16px;
-    background: var(--color-fondo-terciario);
-    border-radius: 10px;
-    font-size: 0.95em;
-    border: 1px solid transparent;
-    transition: border-color var(--transicion);
-}
-
-.lista-stock li.bajo-stock {
-    border-color: rgba(192,57,43,0.4);
-    background: var(--color-rojo-soft);
-    color: var(--color-rojo);
-}
-
-.lista-stock li span {
-    font-weight: 700;
-    font-size: 1.05em;
-}
-
-/* ================================================================
-   HISTORIAL
-   ================================================================ */
-#panel-historial .tabla-datos td:nth-child(3) { font-weight: 700; font-variant-numeric: tabular-nums; }
-
-/* ================================================================
-   ACCIONES CIERRE / LAYOUT HELPERS
-   ================================================================ */
-.acciones-cierre { margin-top: auto; }
-
-/* Clase utilitaria para el buscador de agenda */
-.fila-oculta { display: none !important; }
-
-/* nav-bottom oculta en escritorio — ANTES del @media para que el media query la pueda pisar */
-.nav-bottom { display: none; }
-
-/* ================================================================
-   ▼▼▼  RESPONSIVE — MÓVIL  ▼▼▼
-   ================================================================ */
-@media (max-width: 768px) {
-
-    /* --- Ajuste general de espaciado --- */
-    main {
-        padding: 16px 14px;
-        /* Espacio para la barra de nav inferior */
-        padding-bottom: calc(var(--nav-bottom-height) + 16px);
-    }
-
-    /* --- HEADER móvil: solo logo + reloj --- */
-    header {
-        padding: 0 16px;
-        height: 56px;
-        position: fixed;
-        top: 0;
-        left: 0;
-        right: 0;
-    }
-
-    /* El main empuja hacia abajo del header fijo */
-    body > main {
-        margin-top: 56px;
-    }
-
-    /* --- Ocultar nav horizontal en móvil --- */
-    header nav { display: none; }
-
-    /* Logo más pequeño en móvil */
-    header .logo img { height: 32px; }
-
-    /* Fecha-hora compacta */
-    .fecha-hora { font-size: 0.78em; padding: 5px 10px; }
-
-    /* ---- BARRA DE NAVEGACIÓN INFERIOR (móvil) ---- */
-    .nav-bottom {
-        display: flex;
-        position: fixed;
-        bottom: 0;
-        left: 0;
-        right: 0;
-        height: var(--nav-bottom-height);
-        background: var(--color-fondo-secundario);
-        border-top: 1px solid var(--color-borde);
-        z-index: 100;
-        justify-content: space-around;
-        align-items: center;
-        padding: 0 4px;
-    }
-
-    .nav-bottom a {
-        display: flex;
-        flex-direction: column;
-        align-items: center;
-        gap: 3px;
-        color: var(--color-texto-muted);
-        text-decoration: none;
-        font-size: 0.65em;
-        font-weight: 600;
-        padding: 6px 4px;
-        border-radius: 10px;
-        transition: all var(--transicion);
-        flex: 1;
-        text-align: center;
-    }
-
-    .nav-bottom a span.nav-icon { font-size: 1.5em; line-height: 1; }
-    .nav-bottom a span.nav-label { display: block; }
-
-    .nav-bottom a.active { color: var(--color-primario); }
-    .nav-bottom a.active span.nav-icon { filter: drop-shadow(0 0 6px var(--color-primario)); }
-
-    /* --- PÁGINA REGISTRO móvil --- */
-    .pagina-registro { flex-direction: column; gap: 14px; }
-    .panel-botones, .panel-resumen { min-width: 0; flex: none; width: 100%; }
-
-    .grid-botones {
-        grid-template-columns: repeat(3, 1fr);
-        gap: 10px;
-    }
-
-    .btn-ingreso, .btn-gasto-rapido {
-        min-height: 85px;
-        padding: 12px 6px;
-        font-size: 0.78em;
-        gap: 7px;
-        border-radius: 12px;
-    }
-
-    .btn-ingreso img { height: 26px; }
-
-    .resumen-cifras p { font-size: 0.95em; }
-    .resumen-cifras p.neto { font-size: 1.2em; }
-
-    /* Panel resumen compacto */
-    .panel-resumen { padding: 18px; }
-    .panel-botones { padding: 18px; }
-
-    /* --- TABLAS móvil --- */
-    .tabla-datos th { top: 56px; font-size: 0.72em; }
-    .tabla-datos th, .tabla-datos td { padding: 10px 12px; }
-
-    /* --- DEUDORES móvil --- */
-    .pagina-deudores { flex-direction: column; }
-    .panel-formulario-inline { max-width: 100%; width: 100%; }
-    .panel-lista-deudores { min-width: 0; }
-
-    .deudor-header { gap: 8px; }
-    .deudor-header h3 { font-size: 0.95em; }
-
-    .tabla-deudas-interna th,
-    .tabla-deudas-interna td { padding: 9px 12px; font-size: 0.85em; }
-
-    /* --- AGENDA móvil --- */
-    h3.grupo-mes {
-        top: calc(56px + 10px);
-        font-size: 0.82em;
-        padding: 7px 16px;
-    }
-
-    .tabla-wrapper { padding: 0; }
-
-    /* --- INVENTARIO móvil --- */
-    .pagina-inventario > div[id="panel-inventario"] {
-        display: flex;
-        flex-direction: column;
-        gap: 16px;
-    }
-
-    .lista-stock li { padding: 10px 14px; }
-
-    /* --- MODAL móvil --- */
-    .modal {
-        width: 95vw;
-        padding: 20px 16px;
-        top: auto;
-        bottom: calc(var(--nav-bottom-height) + 10px);
-        transform: translateX(-50%);
-        border-radius: 16px 16px 12px 12px;
-        max-height: 80vh;
-    }
-
-    .modal-acciones { flex-direction: column-reverse; }
-    .modal-acciones button { width: 100%; }
-
-    /* --- Botones de acción en tablas --- */
-    .btn-tabla { padding: 7px 12px; font-size: 0.82em; min-width: 0; }
-
-    /* --- Acciones en tabla de vencidos: stack vertical --- */
-    .acciones-tabla { display: flex; flex-direction: column; gap: 6px; }
-}
-
-/* Pantallas muy pequeñas (< 380px) */
-@media (max-width: 380px) {
-    .grid-botones { grid-template-columns: repeat(2, 1fr); }
-    .btn-ingreso, .btn-gasto-rapido { font-size: 0.72em; min-height: 78px; }
-}
-
-/* (nav-bottom display:none movido antes del @media) */
-
-
-/* ================================================================
-   MODAL — ESTILOS INTERNOS (control-formulario-radio, etc.)
-   ================================================================ */
-
-/* Radios del modal de deudores */
+/* --- Estilos para Formulario Deudores (en Modal o Página) --- */
 .control-formulario-radio {
     display: flex;
     align-items: center;
     gap: 10px;
-    padding: 8px 0;
-}
-.control-formulario-radio input[type="radio"] {
-    accent-color: var(--color-primario);
-    width: 16px;
-    height: 16px;
-    cursor: pointer;
+    width: 100%;
+    padding: 5px 0;
 }
 .control-formulario-radio label {
+    font-weight: bold;
     color: var(--color-texto-secundario);
-    font-size: 0.92em;
-    font-weight: 500;
     cursor: pointer;
 }
+.control-formulario-radio input[type="radio"] {
+    width: 18px;
+    height: 18px;
+}
 
-/* Sección condicional dentro del modal */
 .campos-condicionales {
     display: flex;
-    flex-direction: column;
-    gap: 12px;
-    margin-top: 12px;
-    padding: 16px;
-    background: var(--color-fondo-terciario);
-    border-radius: 10px;
-    border: 1px solid var(--color-borde);
+    flex-wrap: wrap;
+    gap: 15px;
+    width: 100%;
+    padding: 10px;
+    background-color: #2a2a2a;
+    border-radius: 5px;
+    margin-top: 5px;
 }
 
-/* Botones selectores dentro del modal (Mes Normal / Estudiante / Semana) */
-.btn-selector-modal {
-    flex: 1;
-    min-width: 90px;
-    padding: 12px 8px;
-    border-radius: 10px;
-    border: 2px solid var(--color-borde);
-    background: var(--color-fondo-terciario);
-    color: var(--color-texto-secundario);
-    cursor: pointer;
-    font-weight: 700;
-    font-size: 0.92em;
-    transition: all 0.18s ease;
-    line-height: 1.5;
-    text-align: center;
+/* --- PERSONALIZACIÓN DE SWEETALERT2 (TEMA OSCURO) --- */
+div:where(.swal2-container) div:where(.swal2-popup) {
+    background-color: var(--color-fondo-secundario) !important;
+    color: var(--color-texto-principal) !important;
+    border: 1px solid var(--color-borde);
 }
-.btn-selector-modal:hover {
-    border-color: var(--color-primario);
-    background: rgba(45, 140, 219, 0.1);
-    color: var(--color-texto-principal);
+div:where(.swal2-container) .swal2-title,
+div:where(.swal2-container) .swal2-html-container {
+    color: var(--color-texto-principal) !important;
 }
-.btn-selector-modal.seleccionado,
-.btn-selector-modal.tipo-seleccionado {
-    border-color: var(--color-primario);
-    background: rgba(45, 140, 219, 0.18);
-    color: #fff;
+div:where(.swal2-container) input.swal2-input {
+    background-color: #333 !important;
+    color: white !important;
+    border-color: #555 !important;
+}
+div:where(.swal2-container) .swal2-confirm {
+    background-color: var(--color-primario) !important;
+}
+div:where(.swal2-container) .swal2-deny, 
+div:where(.swal2-container) .swal2-cancel {
+    background-color: var(--color-rojo) !important;
 }
