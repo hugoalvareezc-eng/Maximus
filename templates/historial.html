@@ -2,10 +2,10 @@
 
 {% block content %}
 <div class="pagina-lista">
-    <h2>📊 Historial de Ingresos y Gastos</h2>
-    
+    <h2><svg class="icon"><use href="#icon-bar-chart"/></svg> Historial de Ingresos y Gastos</h2>
+
     <div id="panel-bloqueado" class="mensaje-vacio" style="display: flex; flex-direction: column; align-items: center; gap: 15px;">
-        <p>🔒 Esta área está protegida con contraseña.</p>
+        <p><svg class="icon"><use href="#icon-lock"/></svg> Esta área está protegida con contraseña.</p>
         <button id="btn-desbloquear" class="btn-tabla" style="padding: 15px 30px; font-size: 1.2em;">Desbloquear Historial</button>
     </div>
 
@@ -28,7 +28,7 @@
                 <label>Hasta:</label>
                 <input type="date" id="fecha-fin">
             </div>
-            <button id="btn-buscar-fechas" class="btn-tabla">🔍 Buscar</button>
+            <button id="btn-buscar-fechas" class="btn-tabla"><svg class="icon"><use href="#icon-search"/></svg> Buscar</button>
         </section>
 
         <div style="display: flex; justify-content: space-around; background: #222; padding: 15px; border-radius: 8px; margin-bottom: 20px; border: 1px solid #333;">

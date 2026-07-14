@@ -317,7 +317,7 @@ function actualizarReloj() {
     const now = new Date();
     const fecha = now.toLocaleDateString('es-ES', { day: '2-digit', month: '2-digit', year: 'numeric' });
     const hora = now.toLocaleTimeString('es-ES', { hour: '2-digit', minute: '2-digit', second: '2-digit' });
-    el.textContent = `📅 ${fecha} | ⏰ ${hora}`;
+    el.innerHTML = `<svg class="icon"><use href="#icon-calendar"/></svg> ${fecha} | <svg class="icon"><use href="#icon-clock"/></svg> ${hora}`;
 }
 
 // --- Función de Comunicación con el API ---
@@ -473,9 +473,9 @@ async function manejarOtrosPagos() {
     const contenido = `
         <p>Seleccione el tipo de membresía especial:</p>
         <div style="display:flex; gap:8px; flex-wrap:wrap; margin-bottom:16px;" id="modal-botones-otros">
-            <button class="btn-selector-modal" data-tipo="Anualidad" data-meses="12">📅 Anualidad<br><small style="font-weight:400;opacity:0.8;">12 meses</small></button>
-            <button class="btn-selector-modal" data-tipo="Semestre" data-meses="6">📆 Semestre<br><small style="font-weight:400;opacity:0.8;">6 meses</small></button>
-            <button class="btn-selector-modal" data-tipo="Otro (Meses)">✏️ Otro<br><small style="font-weight:400;opacity:0.8;">(Meses)</small></button>
+            <button class="btn-selector-modal" data-tipo="Anualidad" data-meses="12"><svg class="icon"><use href="#icon-calendar"/></svg> Anualidad<br><small style="font-weight:400;opacity:0.8;">12 meses</small></button>
+            <button class="btn-selector-modal" data-tipo="Semestre" data-meses="6"><svg class="icon"><use href="#icon-calendar"/></svg> Semestre<br><small style="font-weight:400;opacity:0.8;">6 meses</small></button>
+            <button class="btn-selector-modal" data-tipo="Otro (Meses)"><svg class="icon"><use href="#icon-pencil"/></svg> Otro<br><small style="font-weight:400;opacity:0.8;">(Meses)</small></button>
         </div>
         <div id="campos-otros-meses" style="display: none;">
             <div class="control-formulario">
@@ -638,15 +638,15 @@ function mostrarModalPagoVencido(evento) {
         <div style="display:flex; gap:8px; flex-wrap:wrap; margin-bottom:20px;" id="modal-botones-pago">
             <button class="btn-selector-modal" data-tipo="Mes Normal" data-precio-total="${pNormal}"
                 style="flex:1; min-width:90px; padding:12px 8px; border-radius:10px; border:2px solid var(--color-borde); background:var(--color-fondo-terciario); color:var(--color-texto-secundario); cursor:pointer; font-weight:700; font-size:0.95em; transition:all 0.2s;">
-                📅 Mes Normal<br><small style="font-weight:400; opacity:0.8;">$${pNormal.toFixed(2)}</small>
+                <svg class="icon"><use href="#icon-calendar"/></svg> Mes Normal<br><small style="font-weight:400; opacity:0.8;">$${pNormal.toFixed(2)}</small>
             </button>
             <button class="btn-selector-modal" data-tipo="Mes Estudiante" data-precio-total="${pEstudiante}"
                 style="flex:1; min-width:90px; padding:12px 8px; border-radius:10px; border:2px solid var(--color-borde); background:var(--color-fondo-terciario); color:var(--color-texto-secundario); cursor:pointer; font-weight:700; font-size:0.95em; transition:all 0.2s;">
-                🎓 Estudiante<br><small style="font-weight:400; opacity:0.8;">$${pEstudiante.toFixed(2)}</small>
+                <svg class="icon"><use href="#icon-graduation-cap"/></svg> Estudiante<br><small style="font-weight:400; opacity:0.8;">$${pEstudiante.toFixed(2)}</small>
             </button>
             <button class="btn-selector-modal" data-tipo="Semana" data-precio-total="${pSemana}"
                 style="flex:1; min-width:90px; padding:12px 8px; border-radius:10px; border:2px solid var(--color-borde); background:var(--color-fondo-terciario); color:var(--color-texto-secundario); cursor:pointer; font-weight:700; font-size:0.95em; transition:all 0.2s;">
-                📆 Semana<br><small style="font-weight:400; opacity:0.8;">$${pSemana.toFixed(2)}</small>
+                <svg class="icon"><use href="#icon-clock"/></svg> Semana<br><small style="font-weight:400; opacity:0.8;">$${pSemana.toFixed(2)}</small>
             </button>
         </div>
         <div class="control-formulario">

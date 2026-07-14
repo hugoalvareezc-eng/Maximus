@@ -7,19 +7,19 @@
         <h2>Registro de Ingresos</h2>
         <div class="grid-botones">
             <button class="btn-ingreso" data-tipo="Mes Normal" data-monto="{{ precios['Mes Normal'] }}" data-requiere-nombre="true">
-                <img src="{{ url_for('static', filename='imagenes/ms_nrml.png') }}" alt="Mes">
+                <svg class="icon icon-btn-ingreso"><use href="#icon-calendar"/></svg>
                 Mes Normal (${{ "%.2f"|format(precios['Mes Normal']) }})
             </button>
             <button class="btn-ingreso" data-tipo="Mes Estudiante" data-monto="{{ precios['Mes Estudiante'] }}" data-requiere-nombre="true">
-                <img src="{{ url_for('static', filename='imagenes/ms_nrml.png') }}" alt="Mes">
+                <svg class="icon icon-btn-ingreso"><use href="#icon-graduation-cap"/></svg>
                 Mes Estudiante (${{ "%.2f"|format(precios['Mes Estudiante']) }})
             </button>
             <button class="btn-ingreso" data-tipo="Semana" data-monto="{{ precios['Semana'] }}" data-requiere-nombre="true">
-                <img src="{{ url_for('static', filename='imagenes/ms_nrml.png') }}" alt="Semana">
+                <svg class="icon icon-btn-ingreso"><use href="#icon-clock"/></svg>
                 Semana (${{ "%.2f"|format(precios['Semana']) }})
             </button>
             <button class="btn-ingreso" data-tipo="Visita" data-monto="{{ precios['Visita'] }}" data-requiere-nombre="false">
-                <img src="{{ url_for('static', filename='imagenes/vis.png') }}" alt="Visita">
+                <svg class="icon icon-btn-ingreso"><use href="#icon-user"/></svg>
                 Visita (${{ "%.2f"|format(precios['Visita']) }})
             </button>
             
@@ -53,7 +53,7 @@
             </button>
             
             <button class="btn-ingreso btn-especial" id="btn-otros-pagos">
-                <img src="{{ url_for('static', filename='imagenes/ms_nrml.png') }}" alt="Otros">
+                <svg class="icon icon-btn-ingreso"><use href="#icon-more"/></svg>
                 Otros Pagos (Anual, Semestre, etc.)
             </button>
 

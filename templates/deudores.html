@@ -4,10 +4,10 @@
 <div class="pagina-deudores">
     
     <aside class="panel-formulario-inline">
-        <h2>💸 Registrar Deuda</h2>
+        <h2><svg class="icon"><use href="#icon-coins"/></svg> Registrar Deuda</h2>
         <p>Registra deudas de productos fiados o adelantos de clientes.</p>
         <button class="btn-tabla" id="btn-mostrar-modal-deuda" style="width: 100%; padding: 12px; font-size: 1.1em;">
-            ➕ Registrar Nueva Deuda
+            <svg class="icon"><use href="#icon-plus"/></svg> Registrar Nueva Deuda
         </button>
     </aside>
 
@@ -15,20 +15,20 @@
         <h2>Lista de Deudores</h2>
 
         {% if not deudores %}
-            <div class="mensaje-vacio"> 🎉 ¡Nadie debe nada! 🎉 </div>
+            <div class="mensaje-vacio"> <svg class="icon"><use href="#icon-check-circle"/></svg> ¡Nadie debe nada! </div>
         {% else %}
             {% for deudor in deudores %}
             <div class="card-deudor">
                 <div class="deudor-header">
                     <h3>{{ deudor.nombre }}</h3>
                     <button class="btn-tabla btn-anadir-deuda" data-nombre="{{ deudor.nombre }}">
-                        ➕ Añadir Deuda
+                        <svg class="icon"><use href="#icon-plus"/></svg> Añadir Deuda
                     </button>
-                    
-                    <button class="btn-tabla btn-pagar btn-pagar-deuda-total" 
-                            data-nombre="{{ deudor.nombre }}" 
+
+                    <button class="btn-tabla btn-pagar btn-pagar-deuda-total"
+                            data-nombre="{{ deudor.nombre }}"
                             data-total-deuda="{{ deudor.total_deuda }}">
-                        💵 Abonar/Liquidar Total
+                        <svg class="icon"><use href="#icon-dollar"/></svg> Abonar/Liquidar Total
                     </button>
                     
                     <span class="total-deuda">Debe: ${{ "%.2f"|format(deudor.total_deuda) }}</span>
@@ -44,7 +44,7 @@
                                 <button class="btn-tabla btn-pagar btn-pagar-deuda" 
                                         data-deuda-id="{{ deuda.id }}" data-nombre="{{ deudor.nombre }}"
                                         data-concepto="{{ deuda.concepto }}" data-monto-maximo="{{ deuda.monto }}">
-                                    💵 Pagar / Abonar
+                                    <svg class="icon"><use href="#icon-dollar"/></svg> Pagar / Abonar
                                 </button>
                             </td>
                         </tr>
