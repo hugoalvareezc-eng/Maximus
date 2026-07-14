@@ -236,6 +236,22 @@ def obtener_proximos_vencimientos(fecha_actual):
     finally:
         if conn: conn.close()
 
+def obtener_todos_los_nombres():
+    """Devuelve los nombres de todos los clientes registrados, para autocompletado en formularios."""
+    conn = crear_conexion()
+    if conn is None: return []
+    try:
+        cursor = conn.cursor()
+        cursor.execute("SELECT nombre FROM clientes ORDER BY nombre")
+        nombres = [fila[0] for fila in cursor.fetchall()]
+        cursor.close()
+        return nombres
+    except Exception as e:
+        print(f"Error al obtener nombres de clientes: {e}", file=sys.stderr)
+        return []
+    finally:
+        if conn: conn.close()
+
 def actualizar_cliente_completo(cliente_id, nombre, fecha_vencimiento_str, telefono):
     """Actualiza todos los datos de un cliente desde el botón de editar."""
     conn = crear_conexion()
@@ -255,7 +271,7 @@ def actualizar_cliente_completo(cliente_id, nombre, fecha_vencimiento_str, telef
         return False
     finally:
         conn.close()
-    
+
 def eliminar_cliente(nombre):
     conn = crear_conexion()
     if conn is None: return False

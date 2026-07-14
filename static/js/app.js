@@ -56,6 +56,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
     // --- Página de Registro (index.html) ---
     if (document.querySelector('.pagina-registro')) {
+        cargarNombresClientes();
         document.querySelectorAll('.btn-ingreso[data-tipo]').forEach(boton => {
             boton.addEventListener('click', manejarClicIngresoEstandar);
         });
@@ -378,10 +379,24 @@ function ocultarModal() {
 
 function capitalizarNombre(nombre) {
     if (!nombre || typeof nombre !== 'string') return '';
-    return nombre.trim().replace(/\s+/g, ' ') 
-           .split(' ') 
-           .map(n => n.charAt(0).toUpperCase() + n.slice(1).toLowerCase()) 
-           .join(' '); 
+    return nombre.trim().replace(/\s+/g, ' ')
+           .split(' ')
+           .map(n => n.charAt(0).toUpperCase() + n.slice(1).toLowerCase())
+           .join(' ');
+}
+
+// Carga los nombres de clientes existentes en el <datalist> global,
+// para sugerir el nombre correcto al cobrar y evitar duplicados por typos.
+async function cargarNombresClientes() {
+    const datalist = document.getElementById('lista-clientes-datalist');
+    if (!datalist) return;
+    try {
+        const respuesta = await fetch('/api/clientes/nombres');
+        const nombres = await respuesta.json();
+        datalist.innerHTML = nombres.map(n => `<option value="${n.replace(/"/g, '&quot;')}"></option>`).join('');
+    } catch (error) {
+        console.error('No se pudo cargar la lista de clientes para autocompletado:', error);
+    }
 }
 
 // --- Helpers de SweetAlert ---
@@ -421,9 +436,10 @@ async function manejarClicIngresoEstandar(evento) {
         if (requiereNombre) {
             const { value: nombreIngresado } = await Swal.fire({
                 title: `Registro de ${tipo}`,
-                text: "Ingrese el nombre del cliente:",
+                text: "Ingrese el nombre del cliente (si ya está registrado, elíjalo de las sugerencias):",
                 input: 'text',
                 inputPlaceholder: 'Nombre completo',
+                inputAttributes: { list: 'lista-clientes-datalist', autocomplete: 'off' },
                 showCancelButton: true,
                 confirmButtonText: 'Registrar',
                 cancelButtonText: 'Cancelar',
@@ -455,8 +471,9 @@ async function manejarClicIngresoEstandar(evento) {
 async function manejarOtrosPagos() {
     const { value: nombreIngresado } = await Swal.fire({
         title: 'Pago Especial',
-        text: "Ingrese el nombre del cliente:",
+        text: "Ingrese el nombre del cliente (si ya está registrado, elíjalo de las sugerencias):",
         input: 'text',
+        inputAttributes: { list: 'lista-clientes-datalist', autocomplete: 'off' },
         showCancelButton: true,
         confirmButtonText: 'Continuar',
         cancelButtonText: 'Cancelar',

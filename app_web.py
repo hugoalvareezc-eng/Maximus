@@ -126,6 +126,11 @@ def historial():
 
 # --- API (Endpoints para JavaScript) ---
 
+@app.route('/api/clientes/nombres')
+def api_nombres_clientes():
+    """Lista de nombres de clientes existentes, para autocompletado al cobrar/registrar."""
+    return jsonify(db.obtener_todos_los_nombres())
+
 @app.route('/api/registrar_ingreso', methods=['POST'])
 def api_registrar_ingreso():
     """API para registrar un ingreso (membresía, producto o abono)."""
