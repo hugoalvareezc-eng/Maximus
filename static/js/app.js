@@ -543,16 +543,24 @@ async function manejarOtrosPagos() {
 
     const titulo = `Pago Especial para ${nombre}`;
     const contenido = `
-        <p>Seleccione el tipo de membresía especial:</p>
+        <p>Seleccione el tipo de membresía especial (el monto siempre es personalizable):</p>
         <div style="display:flex; gap:8px; flex-wrap:wrap; margin-bottom:16px;" id="modal-botones-otros">
+            <button class="btn-selector-modal" data-tipo="Mes (Monto Personalizado)" data-meses="1"><svg class="icon"><use href="#icon-calendar"/></svg> 1 Mes<br><small style="font-weight:400;opacity:0.8;">monto especial</small></button>
             <button class="btn-selector-modal" data-tipo="Anualidad" data-meses="12"><svg class="icon"><use href="#icon-calendar"/></svg> Anualidad<br><small style="font-weight:400;opacity:0.8;">12 meses</small></button>
             <button class="btn-selector-modal" data-tipo="Semestre" data-meses="6"><svg class="icon"><use href="#icon-calendar"/></svg> Semestre<br><small style="font-weight:400;opacity:0.8;">6 meses</small></button>
             <button class="btn-selector-modal" data-tipo="Otro (Meses)"><svg class="icon"><use href="#icon-pencil"/></svg> Otro<br><small style="font-weight:400;opacity:0.8;">(Meses)</small></button>
+            <button class="btn-selector-modal" data-tipo="Otro (Días)"><svg class="icon"><use href="#icon-clock"/></svg> Por Días<br><small style="font-weight:400;opacity:0.8;">monto especial</small></button>
         </div>
         <div id="campos-otros-meses" style="display: none;">
             <div class="control-formulario">
                 <label for="modal-input-meses">Cantidad de Meses:</label>
                 <input type="number" id="modal-input-meses" placeholder="Ej: 3" min="1">
+            </div>
+        </div>
+        <div id="campos-otros-dias" style="display: none;">
+            <div class="control-formulario">
+                <label for="modal-input-dias">Cantidad de Días:</label>
+                <input type="number" id="modal-input-dias" placeholder="Ej: 10" min="1">
             </div>
         </div>
         <div class="control-formulario">
@@ -565,6 +573,7 @@ async function manejarOtrosPagos() {
         if (!tipoSeleccionado) { msjError("Seleccione un tipo de pago."); return; }
         const tipo = tipoSeleccionado.dataset.tipo;
         let meses = parseInt(tipoSeleccionado.dataset.meses || '0');
+        let dias = 0;
         const montoTotalInput = document.getElementById('modal-input-monto');
         if (!montoTotalInput) return;
         const montoTotal = parseFloat(montoTotalInput.value);
@@ -574,14 +583,19 @@ async function manejarOtrosPagos() {
             meses = parseInt(mesesInput.value);
             if (isNaN(meses) || meses <= 0) { msjError("Ingrese un número de meses válido."); return; }
         }
+        if (tipo === "Otro (Días)") {
+            const diasInput = document.getElementById('modal-input-dias');
+            dias = parseInt(diasInput.value);
+            if (isNaN(dias) || dias <= 0) { msjError("Ingrese un número de días válido."); return; }
+        }
         if (isNaN(montoTotal) || montoTotal <= 0) { msjError("Ingrese un monto total válido."); return; }
 
-        const payload = { tipo: tipo, nombre: nombre, monto_pagado: montoTotal, monto_total: montoTotal, meses: meses };
+        const payload = { tipo: tipo, nombre: nombre, monto_pagado: montoTotal, monto_total: montoTotal, meses: meses, dias: dias };
         const respuesta = await postData('/api/registrar_ingreso', payload);
-        if (respuesta.exito) { 
-            ocultarModal(); 
+        if (respuesta.exito) {
+            ocultarModal();
             msjExito(respuesta.mensaje);
-            setTimeout(() => location.reload(), 1000); 
+            setTimeout(() => location.reload(), 1000);
         }
         else { msjError(respuesta.error); }
     });
@@ -590,10 +604,11 @@ async function manejarOtrosPagos() {
         btn.addEventListener('click', (e) => {
             document.querySelectorAll('#modal-botones-otros button').forEach(b => b.classList.remove('tipo-seleccionado'));
             e.currentTarget.classList.add('tipo-seleccionado');
+            const tipoActual = e.currentTarget.dataset.tipo;
             const camposMeses = document.getElementById('campos-otros-meses');
-            if (camposMeses) {
-                camposMeses.style.display = (e.currentTarget.dataset.tipo === "Otro (Meses)") ? 'block' : 'none';
-            }
+            if (camposMeses) camposMeses.style.display = (tipoActual === "Otro (Meses)") ? 'block' : 'none';
+            const camposDias = document.getElementById('campos-otros-dias');
+            if (camposDias) camposDias.style.display = (tipoActual === "Otro (Días)") ? 'block' : 'none';
         });
     });
 }

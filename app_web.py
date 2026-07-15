@@ -139,7 +139,7 @@ def api_registrar_ingreso():
         tipo_ingreso = data.get('tipo')
 
         # --- CASO 1: Es una membresía ---
-        if tipo_ingreso in TIEMPO or tipo_ingreso == "Otro (Meses)":
+        if tipo_ingreso in TIEMPO or tipo_ingreso in ("Otro (Meses)", "Otro (Días)", "Mes (Monto Personalizado)"):
             nombre = data.get('nombre')
             monto_pagado_hoy = float(data.get('monto_pagado'))
             if not nombre or not nombre.strip():
@@ -151,17 +151,30 @@ def api_registrar_ingreso():
 
             if tipo_ingreso in ["Anualidad", "Semestre"]:
                 monto_total = float(data.get('monto_total', monto_pagado_hoy))
-                tiempo_config = TIEMPO[tipo_ingreso]
+                tiempo_config = dict(TIEMPO[tipo_ingreso], dias=0)
+            elif tipo_ingreso == "Mes (Monto Personalizado)":
+                 # 1 mes de duración, pero con un monto distinto al precio de lista
+                 # (para cuando se le cobra menos a alguien).
+                 monto_total = float(data.get('monto_total', monto_pagado_hoy))
+                 tiempo_config = {"meses": 1, "semanas": 0, "dias": 0}
+                 tipo_ingreso = "Mes (Monto Personalizado)"
             elif tipo_ingreso == "Otro (Meses)":
                  monto_total = float(data.get('monto_total', monto_pagado_hoy))
                  meses_otro = int(data.get('meses', 0))
                  if meses_otro <= 0: return jsonify({"exito": False, "error": "Número de meses inválido para 'Otro'."}), 400
-                 tiempo_config = {"meses": meses_otro, "semanas": 0}
+                 tiempo_config = {"meses": meses_otro, "semanas": 0, "dias": 0}
                  # Actualizar tipo_ingreso para que se guarde bien en BD
                  tipo_ingreso = f"Otro ({meses_otro} Meses)"
+            elif tipo_ingreso == "Otro (Días)":
+                 monto_total = float(data.get('monto_total', monto_pagado_hoy))
+                 dias_otro = int(data.get('dias', 0))
+                 if dias_otro <= 0: return jsonify({"exito": False, "error": "Número de días inválido."}), 400
+                 tiempo_config = {"meses": 0, "semanas": 0, "dias": dias_otro}
+                 tipo_ingreso = f"Otro ({dias_otro} Días)"
             else: # Membresías estándar
                 monto_total = float(PRECIOS.get(tipo_ingreso, 0))
                 tiempo_config = TIEMPO.get(tipo_ingreso)
+                tiempo_config = dict(tiempo_config, dias=0) if tiempo_config else None
                 if not tiempo_config or monto_total <= 0:
                      return jsonify({"exito": False, "error": "Tipo de membresía estándar no válido."}), 400
 
@@ -176,7 +189,7 @@ def api_registrar_ingreso():
             if dias_ya_asistidos < 0:
                 dias_ya_asistidos = 0
 
-            if db.registrar_pago_cliente(nombre_limpio, tipo_ingreso, monto_total, monto_pagado_hoy, tiempo_config["meses"], tiempo_config["semanas"], dias_ya_asistidos):
+            if db.registrar_pago_cliente(nombre_limpio, tipo_ingreso, monto_total, monto_pagado_hoy, tiempo_config["meses"], tiempo_config["semanas"], dias_ya_asistidos, tiempo_config.get("dias", 0)):
                 mensaje = f"Pago de ${monto_pagado_hoy:.2f} registrado para {nombre_limpio}."
                 if monto_total - monto_pagado_hoy > 0.001:
                     mensaje += f" Se añadió una deuda por ${monto_total - monto_pagado_hoy:.2f}."

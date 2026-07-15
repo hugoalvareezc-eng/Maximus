@@ -88,11 +88,11 @@ def inicializar_bd():
         conn.close()
 
 # --- FUNCIONES DE MANEJO DE FECHA ---
-def calcular_vencimiento(fecha_base_str, meses=0, semanas=0):
+def calcular_vencimiento(fecha_base_str, meses=0, semanas=0, dias=0):
     """Calcula la nueva fecha de vencimiento a partir de una fecha base."""
     try:
         fecha_base = datetime.strptime(fecha_base_str, '%Y-%m-%d')
-        nueva_fecha = fecha_base + relativedelta(months=meses) + timedelta(days=semanas * 7)
+        nueva_fecha = fecha_base + relativedelta(months=meses) + timedelta(days=semanas * 7 + dias)
         return nueva_fecha.strftime('%Y-%m-%d')
     except ValueError:
         return None
@@ -109,7 +109,7 @@ def obtener_vencimiento_actual(nombre):
     conn.close()
     return resultado[0] if resultado else None
 
-def registrar_pago_cliente(nombre, tipo_pago, monto_total_membresia, monto_pagado_hoy, meses=0, semanas=0, dias_ya_asistidos=0):
+def registrar_pago_cliente(nombre, tipo_pago, monto_total_membresia, monto_pagado_hoy, meses=0, semanas=0, dias_ya_asistidos=0, dias=0):
     """
     Registra el pago (completo O abono) de una membresía.
     1. Activa su membresía (calcula nuevo vencimiento).
@@ -136,7 +136,7 @@ def registrar_pago_cliente(nombre, tipo_pago, monto_total_membresia, monto_pagad
         elif dias_ya_asistidos > 0: # Vencido, pero siguió viniendo sin pagar
             fecha_base_calculo = (hoy_dt - timedelta(days=dias_ya_asistidos)).strftime('%Y-%m-%d')
 
-    nueva_fecha_vencimiento = calcular_vencimiento(fecha_base_calculo, meses=meses, semanas=semanas)
+    nueva_fecha_vencimiento = calcular_vencimiento(fecha_base_calculo, meses=meses, semanas=semanas, dias=dias)
 
     try:
         cursor = conn.cursor()
