@@ -385,18 +385,71 @@ function capitalizarNombre(nombre) {
            .join(' ');
 }
 
-// Carga los nombres de clientes existentes en el <datalist> global,
-// para sugerir el nombre correcto al cobrar y evitar duplicados por typos.
+// Caché de nombres de clientes existentes, para sugerir el nombre correcto
+// al cobrar y evitar duplicados por typos.
+let nombresClientesCache = [];
+
 async function cargarNombresClientes() {
-    const datalist = document.getElementById('lista-clientes-datalist');
-    if (!datalist) return;
     try {
         const respuesta = await fetch('/api/clientes/nombres');
-        const nombres = await respuesta.json();
-        datalist.innerHTML = nombres.map(n => `<option value="${n.replace(/"/g, '&quot;')}"></option>`).join('');
+        nombresClientesCache = await respuesta.json();
     } catch (error) {
         console.error('No se pudo cargar la lista de clientes para autocompletado:', error);
     }
+}
+
+// Quita acentos y normaliza mayúsculas, para comparar nombres sin
+// importar cómo se hayan escrito los acentos (mismo criterio que el
+// buscador de Agenda).
+function normalizarTexto(texto) {
+    return (texto || '').normalize('NFD').replace(/[̀-ͯ]/g, '').toLowerCase().trim();
+}
+
+// Reemplaza el autocompletado nativo del navegador (feo e inconsistente
+// entre navegadores) por un desplegable propio, con el mismo estilo del
+// resto de la app, que sugiere clientes ya registrados mientras se escribe.
+function adjuntarAutocompletadoNombre(inputEl) {
+    if (!inputEl) return;
+
+    const contenedor = inputEl.parentElement;
+    contenedor.style.position = 'relative';
+
+    const lista = document.createElement('div');
+    lista.className = 'autocomplete-lista';
+    lista.style.display = 'none';
+    contenedor.appendChild(lista);
+
+    const ocultarLista = () => { lista.style.display = 'none'; lista.innerHTML = ''; };
+
+    const mostrarSugerencias = () => {
+        const consulta = normalizarTexto(inputEl.value);
+        if (!consulta) { ocultarLista(); return; }
+
+        const coincidencias = nombresClientesCache
+            .filter(nombre => normalizarTexto(nombre).includes(consulta))
+            .slice(0, 6);
+
+        if (coincidencias.length === 0) { ocultarLista(); return; }
+
+        lista.innerHTML = coincidencias.map(nombre =>
+            `<div class="autocomplete-item" data-nombre="${nombre.replace(/"/g, '&quot;')}">${nombre}</div>`
+        ).join('');
+        lista.style.display = 'block';
+    };
+
+    inputEl.addEventListener('input', mostrarSugerencias);
+    inputEl.addEventListener('focus', mostrarSugerencias);
+
+    lista.addEventListener('mousedown', (e) => {
+        const item = e.target.closest('.autocomplete-item');
+        if (!item) return;
+        e.preventDefault();
+        inputEl.value = item.dataset.nombre;
+        inputEl.dispatchEvent(new Event('input'));
+        ocultarLista();
+    });
+
+    inputEl.addEventListener('blur', () => setTimeout(ocultarLista, 150));
 }
 
 // --- Helpers de SweetAlert ---
@@ -439,11 +492,12 @@ async function manejarClicIngresoEstandar(evento) {
                 text: "Ingrese el nombre del cliente (si ya está registrado, elíjalo de las sugerencias):",
                 input: 'text',
                 inputPlaceholder: 'Nombre completo',
-                inputAttributes: { list: 'lista-clientes-datalist', autocomplete: 'off' },
+                inputAttributes: { autocomplete: 'off' },
                 showCancelButton: true,
                 confirmButtonText: 'Registrar',
                 cancelButtonText: 'Cancelar',
                 confirmButtonColor: '#2980b9',
+                didOpen: () => adjuntarAutocompletadoNombre(Swal.getInput()),
                 inputValidator: (value) => {
                     if (!value) { return 'El nombre es obligatorio'; }
                 }
@@ -473,11 +527,12 @@ async function manejarOtrosPagos() {
         title: 'Pago Especial',
         text: "Ingrese el nombre del cliente (si ya está registrado, elíjalo de las sugerencias):",
         input: 'text',
-        inputAttributes: { list: 'lista-clientes-datalist', autocomplete: 'off' },
+        inputAttributes: { autocomplete: 'off' },
         showCancelButton: true,
         confirmButtonText: 'Continuar',
         cancelButtonText: 'Cancelar',
         confirmButtonColor: '#2980b9',
+        didOpen: () => adjuntarAutocompletadoNombre(Swal.getInput()),
         inputValidator: (value) => {
             if (!value) { return 'El nombre es obligatorio.'; }
         }
