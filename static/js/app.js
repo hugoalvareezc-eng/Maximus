@@ -704,6 +704,18 @@ function mostrarModalPagoVencido(evento) {
     const pEstudiante = parseFloat(boton.dataset.precioEstudiante);
     const pSemana = parseFloat(boton.dataset.precioSemana);
 
+    const fechaVencimiento = boton.dataset.fechaVencimiento;
+    const diasVencido = fechaVencimiento
+        ? Math.max(0, Math.floor((new Date() - new Date(fechaVencimiento + 'T00:00:00')) / 86400000))
+        : 0;
+
+    const bloqueDiasGracia = diasVencido > 0 ? `
+        <div class="control-formulario" style="margin-top:14px;">
+            <label for="modal-input-dias-gracia">Venció hace ${diasVencido} día${diasVencido === 1 ? '' : 's'}. ¿Cuántos siguió viniendo sin pagar?</label>
+            <input type="number" id="modal-input-dias-gracia" min="0" max="${diasVencido}" value="0" placeholder="0">
+            <small style="color:var(--color-texto-muted); display:block; margin-top:4px;">Esos días se restan del nuevo periodo. Déjalo en 0 si no volvió hasta hoy.</small>
+        </div>` : '';
+
     const titulo = `Renovar a ${nombre}`;
     const contenido = `
         <p style="font-size:0.88em; text-transform:uppercase; letter-spacing:0.6px; color:var(--color-texto-muted); margin-bottom:10px; font-weight:600;">Tipo de Membresía</p>
@@ -724,7 +736,8 @@ function mostrarModalPagoVencido(evento) {
         <div class="control-formulario">
             <label for="modal-input-pago">Monto a Pagar Ahora (Abono o Completo):</label>
             <input type="number" id="modal-input-pago" step="0.01" placeholder="Ej: 100.00" min="0.01">
-        </div>`;
+        </div>
+        ${bloqueDiasGracia}`;
 
     mostrarModal(titulo, contenido, async () => {
         const tipoSeleccionado = document.querySelector('#modal-botones-pago .tipo-seleccionado');
@@ -737,12 +750,17 @@ function mostrarModalPagoVencido(evento) {
         if (isNaN(montoPagado) || montoPagado <= 0) { msjError("Ingrese un monto válido a pagar."); return; }
         if (montoPagado > montoTotal + 0.001) { msjError(`El pago ($${montoPagado.toFixed(2)}) no puede ser mayor al costo total ($${montoTotal.toFixed(2)}).`); return; }
 
-        const payload = { tipo: tipo, nombre: nombre, monto_pagado: montoPagado, monto_total: montoTotal };
+        const inputDiasGracia = document.getElementById('modal-input-dias-gracia');
+        let diasYaAsistidos = inputDiasGracia ? parseInt(inputDiasGracia.value, 10) : 0;
+        if (isNaN(diasYaAsistidos) || diasYaAsistidos < 0) diasYaAsistidos = 0;
+        if (diasYaAsistidos > diasVencido) diasYaAsistidos = diasVencido;
+
+        const payload = { tipo: tipo, nombre: nombre, monto_pagado: montoPagado, monto_total: montoTotal, dias_ya_asistidos: diasYaAsistidos };
         const respuesta = await postData('/api/registrar_ingreso', payload);
-        if (respuesta.exito) { 
-            ocultarModal(); 
+        if (respuesta.exito) {
+            ocultarModal();
             msjExito(respuesta.mensaje);
-            setTimeout(() => location.reload(), 1000); 
+            setTimeout(() => location.reload(), 1000);
         }
         else { msjError(respuesta.error); }
     });

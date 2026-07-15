@@ -109,12 +109,16 @@ def obtener_vencimiento_actual(nombre):
     conn.close()
     return resultado[0] if resultado else None
 
-def registrar_pago_cliente(nombre, tipo_pago, monto_total_membresia, monto_pagado_hoy, meses=0, semanas=0):
+def registrar_pago_cliente(nombre, tipo_pago, monto_total_membresia, monto_pagado_hoy, meses=0, semanas=0, dias_ya_asistidos=0):
     """
     Registra el pago (completo O abono) de una membresía.
     1. Activa su membresía (calcula nuevo vencimiento).
     2. Registra el 'monto_pagado_hoy' en la caja del día.
     3. Si hay un restante, lo añade a la tabla 'deudores'.
+
+    'dias_ya_asistidos' cubre el caso de un cliente que venció pero siguió
+    entrenando antes de pagar: esos días se descuentan del nuevo periodo
+    en vez de regalarlos, recorriendo la fecha base hacia atrás.
     """
     conn = crear_conexion()
     if conn is None: return False
@@ -122,14 +126,16 @@ def registrar_pago_cliente(nombre, tipo_pago, monto_total_membresia, monto_pagad
     hoy_dt = (datetime.utcnow() - timedelta(hours=6)).replace(hour=0, minute=0, second=0, microsecond=0)
     hoy_str = hoy_dt.strftime('%Y-%m-%d')
     vencimiento_existente_str = obtener_vencimiento_actual(nombre)
-    
+
     # Lógica de fecha de inicio de membresía
     fecha_base_calculo = hoy_str # Por defecto, la membresía corre desde HOY
     if vencimiento_existente_str:
         vencimiento_existente_dt = datetime.strptime(vencimiento_existente_str, '%Y-%m-%d')
         if vencimiento_existente_dt > hoy_dt: # Si paga por adelantado
             fecha_base_calculo = vencimiento_existente_dt.strftime('%Y-%m-%d')
-    
+        elif dias_ya_asistidos > 0: # Vencido, pero siguió viniendo sin pagar
+            fecha_base_calculo = (hoy_dt - timedelta(days=dias_ya_asistidos)).strftime('%Y-%m-%d')
+
     nueva_fecha_vencimiento = calcular_vencimiento(fecha_base_calculo, meses=meses, semanas=semanas)
 
     try:

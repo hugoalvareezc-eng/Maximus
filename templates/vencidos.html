@@ -23,8 +23,9 @@
                     <td>{{ nombre }}</td>
                     <td>{{ fecha }}</td>
                     <td class="acciones-tabla">
-                        <button class="btn-tabla btn-pagar btn-procesar-pago" 
+                        <button class="btn-tabla btn-pagar btn-procesar-pago"
                                 data-nombre="{{ nombre }}"
+                                data-fecha-vencimiento="{{ fecha }}"
                                 data-precio-normal="{{ precios['Mes Normal'] }}"
                                 data-precio-estudiante="{{ precios['Mes Estudiante'] }}"
                                 data-precio-semana="{{ precios['Semana'] }}">

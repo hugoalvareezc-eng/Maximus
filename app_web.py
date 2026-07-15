@@ -165,10 +165,18 @@ def api_registrar_ingreso():
                 if not tiempo_config or monto_total <= 0:
                      return jsonify({"exito": False, "error": "Tipo de membresía estándar no válido."}), 400
 
+            if monto_pagado_hoy <= 0:
+                return jsonify({"exito": False, "error": "El monto pagado debe ser mayor a cero."}), 400
             if monto_pagado_hoy > monto_total + 0.001: # Tolerancia flotante
                 return jsonify({"exito": False, "error": f"El pago (${monto_pagado_hoy:.2f}) no puede ser mayor al costo total (${monto_total:.2f})."}), 400
 
-            if db.registrar_pago_cliente(nombre_limpio, tipo_ingreso, monto_total, monto_pagado_hoy, tiempo_config["meses"], tiempo_config["semanas"]):
+            # Días que el cliente siguió asistiendo ya vencido, antes de pagar hoy
+            # (se descuentan del nuevo periodo en vez de regalarlos).
+            dias_ya_asistidos = int(data.get('dias_ya_asistidos', 0) or 0)
+            if dias_ya_asistidos < 0:
+                dias_ya_asistidos = 0
+
+            if db.registrar_pago_cliente(nombre_limpio, tipo_ingreso, monto_total, monto_pagado_hoy, tiempo_config["meses"], tiempo_config["semanas"], dias_ya_asistidos):
                 mensaje = f"Pago de ${monto_pagado_hoy:.2f} registrado para {nombre_limpio}."
                 if monto_total - monto_pagado_hoy > 0.001:
                     mensaje += f" Se añadió una deuda por ${monto_total - monto_pagado_hoy:.2f}."
