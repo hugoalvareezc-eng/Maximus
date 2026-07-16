@@ -1,7 +1,9 @@
 // Variable global para la corrección de Safari/Chrome al sumar/restar stock
 let ultimaAccionStock = null;
 // Variable para recordar la contraseña del historial temporalmente
-let passwordAprobada = ""; 
+let passwordAprobada = "";
+// Último set de registros cargado en Historial (para redibujar la gráfica al cambiar el tamaño de ventana)
+let ultimosRegistrosHistorial = [];
 
 // --- Ejecutar cuando el DOM esté listo ---
 document.addEventListener('DOMContentLoaded', () => {
@@ -272,7 +274,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
         async function cargarHistorial(inicio, fin) {
             if (!inicio || !fin) { msjError("Por favor seleccione ambas fechas."); return; }
-            
+
             const respuesta = await postData('/api/obtener_historial', {
                 password: passwordAprobada, fecha_inicio: inicio, fecha_fin: fin
             });
@@ -283,30 +285,52 @@ document.addEventListener('DOMContentLoaded', () => {
                 document.getElementById('txt-neto').textContent = "$" + respuesta.neto.toFixed(2);
 
                 const tbody = document.getElementById('tabla-historial-body');
-                tbody.innerHTML = ""; 
-                
+                tbody.innerHTML = "";
+
                 if (respuesta.registros.length === 0) {
-                    tbody.innerHTML = "<tr><td colspan='4' style='text-align:center;'>No hay registros en estas fechas</td></tr>";
-                    return;
+                    const filaVacia = document.createElement('tr');
+                    const celdaVacia = document.createElement('td');
+                    celdaVacia.colSpan = 4;
+                    celdaVacia.style.textAlign = 'center';
+                    celdaVacia.textContent = 'No hay registros en estas fechas';
+                    filaVacia.appendChild(celdaVacia);
+                    tbody.appendChild(filaVacia);
+                } else {
+                    respuesta.registros.forEach(reg => {
+                        const fila = document.createElement('tr');
+
+                        const tdFecha = document.createElement('td');
+                        tdFecha.textContent = reg.fecha;
+
+                        const tdConcepto = document.createElement('td');
+                        tdConcepto.textContent = reg.concepto;
+
+                        const tdMonto = document.createElement('td');
+                        tdMonto.textContent = `$${reg.monto.toFixed(2)}`;
+                        tdMonto.style.fontWeight = 'bold';
+                        tdMonto.style.color = reg.es_gasto ? 'var(--color-rojo)' : 'var(--color-verde)';
+
+                        const tdTipo = document.createElement('td');
+                        tdTipo.textContent = reg.es_gasto ? 'Gasto' : 'Ingreso';
+
+                        fila.append(tdFecha, tdConcepto, tdMonto, tdTipo);
+                        tbody.appendChild(fila);
+                    });
                 }
 
-                respuesta.registros.forEach(reg => {
-                    const fila = document.createElement('tr');
-                    const colorMonto = reg.es_gasto ? 'color: var(--color-rojo);' : 'color: var(--color-verde);';
-                    const tipoTexto = reg.es_gasto ? 'Gasto' : 'Ingreso';
-                    
-                    fila.innerHTML = `
-                        <td>${reg.fecha}</td>
-                        <td>${reg.concepto}</td>
-                        <td style="font-weight:bold; ${colorMonto}">$${reg.monto.toFixed(2)}</td>
-                        <td>${tipoTexto}</td>
-                    `;
-                    tbody.appendChild(fila);
-                });
+                ultimosRegistrosHistorial = respuesta.registros;
+                renderGraficaTendencia(respuesta.registros);
+                renderGraficaTopGastos(respuesta.registros);
             } else {
                 msjError(respuesta.error);
             }
         }
+
+        window.addEventListener('resize', debounce(() => {
+            if (panelHistorial.style.display !== 'none') {
+                renderGraficaTendencia(ultimosRegistrosHistorial);
+            }
+        }, 250));
     }
 });
 
@@ -405,6 +429,19 @@ function normalizarTexto(texto) {
     return (texto || '').normalize('NFD').replace(/[̀-ͯ]/g, '').toLowerCase().trim();
 }
 
+// Convierte texto libre (nombres, conceptos) a HTML seguro para insertarlo
+// con innerHTML (como texto o dentro de un atributo con comillas dobles),
+// evitando que un dato guardado como "<img onerror=...>" se ejecute como
+// HTML al mostrarlo.
+function escaparHtml(texto) {
+    return String(texto == null ? '' : texto)
+        .replace(/&/g, '&amp;')
+        .replace(/</g, '&lt;')
+        .replace(/>/g, '&gt;')
+        .replace(/"/g, '&quot;')
+        .replace(/'/g, '&#39;');
+}
+
 // Reemplaza el autocompletado nativo del navegador (feo e inconsistente
 // entre navegadores) por un desplegable propio, con el mismo estilo del
 // resto de la app, que sugiere clientes ya registrados mientras se escribe.
@@ -432,7 +469,7 @@ function adjuntarAutocompletadoNombre(inputEl) {
         if (coincidencias.length === 0) { ocultarLista(); return; }
 
         lista.innerHTML = coincidencias.map(nombre =>
-            `<div class="autocomplete-item" data-nombre="${nombre.replace(/"/g, '&quot;')}">${nombre}</div>`
+            `<div class="autocomplete-item" data-nombre="${escaparHtml(nombre)}">${escaparHtml(nombre)}</div>`
         ).join('');
         lista.style.display = 'block';
     };
@@ -450,6 +487,193 @@ function adjuntarAutocompletadoNombre(inputEl) {
     });
 
     inputEl.addEventListener('blur', () => setTimeout(ocultarLista, 150));
+}
+
+function debounce(fn, esperaMs) {
+    let temporizador;
+    return (...args) => {
+        clearTimeout(temporizador);
+        temporizador = setTimeout(() => fn(...args), esperaMs);
+    };
+}
+
+// --- Gráficas de Historial (SVG dibujado a mano, sin librerías externas) ---
+function mostrarTooltip(evento, htmlContenido) {
+    const tip = document.getElementById('tooltip-grafica');
+    if (!tip) return;
+    tip.innerHTML = htmlContenido;
+    tip.style.display = 'block';
+    const desplazamiento = 14;
+    let x = evento.clientX + desplazamiento;
+    let y = evento.clientY + desplazamiento;
+    // Evitar que el tooltip se salga por la derecha o abajo de la pantalla
+    const anchoTip = tip.offsetWidth || 160;
+    const altoTip = tip.offsetHeight || 60;
+    if (x + anchoTip > window.innerWidth) x = evento.clientX - anchoTip - desplazamiento;
+    if (y + altoTip > window.innerHeight) y = evento.clientY - altoTip - desplazamiento;
+    tip.style.left = x + 'px';
+    tip.style.top = y + 'px';
+}
+
+function ocultarTooltip() {
+    const tip = document.getElementById('tooltip-grafica');
+    if (tip) tip.style.display = 'none';
+}
+
+function formatearMontoCorto(valor) {
+    if (valor >= 1000) return '$' + (valor / 1000).toFixed(valor % 1000 === 0 ? 0 : 1) + 'k';
+    return '$' + Math.round(valor);
+}
+
+function formatearFechaCorta(fechaStr) {
+    const partes = fechaStr.split('-');
+    return `${partes[2]}/${partes[1]}`;
+}
+
+function formatearFechaLarga(fechaStr) {
+    const fecha = new Date(fechaStr + 'T00:00:00');
+    const texto = fecha.toLocaleDateString('es-MX', { weekday: 'long', day: 'numeric', month: 'short' });
+    return texto.charAt(0).toUpperCase() + texto.slice(1);
+}
+
+// Dibuja un rectángulo con las esquinas superiores redondeadas y la base
+// recta, anclada al eje (así la barra "nace" del piso en vez de flotar).
+function pathBarraRedondeada(x, y, w, h, r) {
+    if (h <= 0 || w <= 0) return '';
+    const radio = Math.min(r, w / 2, h);
+    return `M${x},${y + h} L${x},${y + radio} Q${x},${y} ${x + radio},${y} L${x + w - radio},${y} Q${x + w},${y} ${x + w},${y + radio} L${x + w},${y + h} Z`;
+}
+
+function agruparPorDia(registros) {
+    const mapa = new Map();
+    registros.forEach(r => {
+        if (!mapa.has(r.fecha)) mapa.set(r.fecha, { fecha: r.fecha, ingreso: 0, gasto: 0 });
+        const dia = mapa.get(r.fecha);
+        if (r.es_gasto) dia.gasto += r.monto; else dia.ingreso += r.monto;
+    });
+    return Array.from(mapa.values()).sort((a, b) => a.fecha.localeCompare(b.fecha));
+}
+
+function renderGraficaTendencia(registros) {
+    const contenedor = document.getElementById('grafica-tendencia');
+    if (!contenedor) return;
+    const datos = agruparPorDia(registros);
+
+    if (datos.length === 0) {
+        contenedor.innerHTML = '<p class="grafica-vacia">Sin movimientos en este rango de fechas.</p>';
+        return;
+    }
+
+    const altoTotal = 220;
+    const margen = { izq: 44, der: 10, sup: 14, inf: 26 };
+    const anchoPorDia = 44;
+    const anchoDisponible = contenedor.clientWidth || 560;
+    const anchoTotal = Math.max(anchoDisponible, datos.length * anchoPorDia + margen.izq + margen.der);
+    const anchoUtil = anchoTotal - margen.izq - margen.der;
+    const altoUtil = altoTotal - margen.sup - margen.inf;
+
+    const maxValorReal = Math.max(1, ...datos.map(d => Math.max(d.ingreso, d.gasto)));
+    const maxValor = maxValorReal * 1.15;
+    const escalaY = valor => altoUtil - (valor / maxValor) * altoUtil;
+
+    const anchoGrupo = anchoUtil / datos.length;
+    const anchoBarra = Math.max(4, Math.min(15, anchoGrupo * 0.30));
+
+    const niveles = 4;
+    let gridSvg = '';
+    for (let i = 0; i <= niveles; i++) {
+        const valor = (maxValor / niveles) * i;
+        const y = margen.sup + escalaY(valor);
+        gridSvg += `<line x1="${margen.izq}" y1="${y.toFixed(1)}" x2="${anchoTotal - margen.der}" y2="${y.toFixed(1)}" class="eje-linea"/>`;
+        gridSvg += `<text x="${margen.izq - 8}" y="${(y + 3.5).toFixed(1)}" class="eje-texto" text-anchor="end">${formatearMontoCorto(valor)}</text>`;
+    }
+
+    let barras = '';
+    let etiquetasX = '';
+    const saltoEtiqueta = datos.length > 12 ? Math.ceil(datos.length / 10) : 1;
+
+    datos.forEach((d, i) => {
+        const xGrupo = margen.izq + i * anchoGrupo;
+        const centro = xGrupo + anchoGrupo / 2;
+        const xIngreso = centro - anchoBarra - 1;
+        const xGasto = centro + 1;
+
+        const yIngreso = margen.sup + escalaY(d.ingreso);
+        const hIngreso = altoUtil - escalaY(d.ingreso);
+        const yGasto = margen.sup + escalaY(d.gasto);
+        const hGasto = altoUtil - escalaY(d.gasto);
+
+        barras += `<path class="barra-ingreso" d="${pathBarraRedondeada(xIngreso, yIngreso, anchoBarra, hIngreso, 3)}"/>`;
+        barras += `<path class="barra-gasto" d="${pathBarraRedondeada(xGasto, yGasto, anchoBarra, hGasto, 3)}"/>`;
+        barras += `<rect class="barra-hit" data-idx="${i}" x="${xGrupo.toFixed(1)}" y="${margen.sup}" width="${anchoGrupo.toFixed(1)}" height="${altoUtil}" fill="transparent"/>`;
+
+        if (i % saltoEtiqueta === 0) {
+            etiquetasX += `<text x="${centro.toFixed(1)}" y="${altoTotal - 8}" class="eje-texto" text-anchor="middle">${formatearFechaCorta(d.fecha)}</text>`;
+        }
+    });
+
+    contenedor.innerHTML = `<svg width="${anchoTotal}" height="${altoTotal}" class="svg-grafica">${gridSvg}${barras}${etiquetasX}</svg>`;
+
+    contenedor.querySelectorAll('.barra-hit').forEach(hit => {
+        hit.addEventListener('mousemove', (evento) => {
+            const d = datos[parseInt(hit.dataset.idx, 10)];
+            mostrarTooltip(evento, `
+                <strong>${formatearFechaLarga(d.fecha)}</strong><br>
+                <span style="color:var(--color-primario);">Ingresos: $${d.ingreso.toFixed(2)}</span><br>
+                <span style="color:var(--color-rojo);">Gastos: $${d.gasto.toFixed(2)}</span><br>
+                Neto: $${(d.ingreso - d.gasto).toFixed(2)}
+            `);
+        });
+        hit.addEventListener('mouseleave', ocultarTooltip);
+    });
+}
+
+function renderGraficaTopGastos(registros) {
+    const contenedor = document.getElementById('grafica-top-gastos');
+    if (!contenedor) return;
+
+    const mapa = new Map();
+    registros.filter(r => r.es_gasto).forEach(r => {
+        mapa.set(r.concepto, (mapa.get(r.concepto) || 0) + r.monto);
+    });
+    let datos = Array.from(mapa.entries())
+        .map(([concepto, monto]) => ({ concepto, monto }))
+        .sort((a, b) => b.monto - a.monto);
+
+    if (datos.length === 0) {
+        contenedor.innerHTML = '<p class="grafica-vacia">No hay gastos registrados en este rango.</p>';
+        return;
+    }
+
+    const TOP_N = 6;
+    let principales = datos.slice(0, TOP_N).map(d => ({ ...d, esOtros: false }));
+    const resto = datos.slice(TOP_N);
+    if (resto.length > 0) {
+        const sumaResto = resto.reduce((acc, d) => acc + d.monto, 0);
+        principales.push({ concepto: `Otros conceptos (${resto.length})`, monto: sumaResto, esOtros: true });
+    }
+
+    const maxValor = Math.max(...principales.map(d => d.monto));
+
+    contenedor.innerHTML = principales.map(d => {
+        const porcentaje = Math.max(3, (d.monto / maxValor) * 100).toFixed(1);
+        const conceptoSeguro = escaparHtml(d.concepto);
+        return `
+            <div class="barra-h-fila ${d.esOtros ? 'es-otros' : ''}" data-concepto="${conceptoSeguro}" data-monto="${d.monto}">
+                <div class="barra-h-encabezado">
+                    <span class="barra-h-etiqueta" title="${conceptoSeguro}">${conceptoSeguro}</span>
+                    <span class="barra-h-valor">$${d.monto.toFixed(2)}</span>
+                </div>
+                <div class="barra-h-pista"><div class="barra-h-relleno" style="width:${porcentaje}%"></div></div>
+            </div>`;
+    }).join('');
+
+    contenedor.querySelectorAll('.barra-h-fila').forEach(fila => {
+        fila.addEventListener('mousemove', (evento) => {
+            mostrarTooltip(evento, `<strong>${escaparHtml(fila.dataset.concepto)}</strong><br>$${parseFloat(fila.dataset.monto).toFixed(2)}`);
+        });
+        fila.addEventListener('mouseleave', ocultarTooltip);
+    });
 }
 
 // --- Helpers de SweetAlert ---
