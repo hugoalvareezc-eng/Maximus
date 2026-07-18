@@ -242,6 +242,63 @@ def obtener_proximos_vencimientos(fecha_actual):
     finally:
         if conn: conn.close()
 
+def normalizar_telefono(telefono):
+    """Deja solo dígitos y se queda con los últimos 10 (número local mexicano),
+    para poder comparar '5215512345678', '525512345678' y '5512345678' como
+    el mismo número sin importar el prefijo de país que haya mandado WhatsApp."""
+    if not telefono:
+        return None
+    solo_digitos = ''.join(c for c in telefono if c.isdigit())
+    return solo_digitos[-10:] if len(solo_digitos) >= 10 else (solo_digitos or None)
+
+def obtener_clientes_que_vencen(fecha_str):
+    """Clientes cuya fecha_vencimiento es exactamente 'fecha_str' (YYYY-MM-DD)
+    y tienen teléfono registrado. Se usa para el recordatorio de un día antes."""
+    conn = crear_conexion()
+    if conn is None: return []
+    try:
+        cursor = conn.cursor()
+        cursor.execute(
+            "SELECT nombre, telefono, fecha_vencimiento FROM clientes "
+            "WHERE fecha_vencimiento = %s AND telefono IS NOT NULL AND telefono != ''",
+            (fecha_str,)
+        )
+        filas = cursor.fetchall()
+        cursor.close()
+        return filas
+    except Exception as e:
+        print(f"Error al obtener clientes que vencen: {e}", file=sys.stderr)
+        return []
+    finally:
+        if conn: conn.close()
+
+def buscar_cliente_por_telefono(telefono):
+    """Busca un cliente por teléfono (comparando solo los últimos 10 dígitos).
+    Devuelve dict con nombre y fecha_vencimiento, o None si no está registrado."""
+    numero = normalizar_telefono(telefono)
+    if not numero:
+        return None
+    conn = crear_conexion()
+    if conn is None: return None
+    try:
+        cursor = conn.cursor()
+        cursor.execute(
+            "SELECT nombre, fecha_vencimiento, telefono FROM clientes "
+            "WHERE telefono IS NOT NULL AND telefono != '' "
+            "AND RIGHT(REGEXP_REPLACE(telefono, '[^0-9]', '', 'g'), 10) = %s",
+            (numero,)
+        )
+        fila = cursor.fetchone()
+        cursor.close()
+        if not fila:
+            return None
+        return {"nombre": fila[0], "fecha_vencimiento": fila[1]}
+    except Exception as e:
+        print(f"Error al buscar cliente por teléfono: {e}", file=sys.stderr)
+        return None
+    finally:
+        if conn: conn.close()
+
 def obtener_todos_los_nombres():
     """Devuelve los nombres de todos los clientes registrados, para autocompletado en formularios."""
     conn = crear_conexion()

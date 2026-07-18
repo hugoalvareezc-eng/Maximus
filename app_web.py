@@ -2,6 +2,7 @@ import sys
 import os
 from flask import Flask, render_template, request, jsonify, redirect, url_for
 import gimnasio_crud as db
+import ycloud_whatsapp
 from datetime import datetime, timedelta
 import locale
 
@@ -511,6 +512,44 @@ def api_editar_cliente():
         return jsonify({"exito": False, "error": "Datos inválidos."}), 400
     except Exception as e:
         return jsonify({"exito": False, "error": str(e)}), 500
+
+# --- WhatsApp (YCloud) ---
+
+@app.route('/api/cron/recordatorios', methods=['POST', 'GET'])
+def api_cron_recordatorios():
+    """
+    Pensada para llamarse UNA VEZ AL DÍA desde un cron (ver vercel.json),
+    no desde el navegador. Manda el recordatorio de vencimiento a todos los
+    clientes cuya membresía vence mañana. Protegida con CRON_SECRET para que
+    nadie más pueda dispararla ni gastar mensajes de WhatsApp.
+    """
+    secreto_esperado = ycloud_whatsapp.CRON_SECRET
+    auth_header = request.headers.get('Authorization', '')
+    secreto_recibido = (
+        auth_header[7:] if auth_header.startswith('Bearer ') else None
+    ) or request.headers.get('X-Cron-Secret') or request.args.get('secreto')
+    if not secreto_esperado or secreto_recibido != secreto_esperado:
+        return jsonify({"exito": False, "error": "No autorizado."}), 401
+
+    manana_str = (datetime.utcnow() - timedelta(hours=6) + timedelta(days=1)).strftime('%Y-%m-%d')
+    resultado = ycloud_whatsapp.enviar_recordatorios_de_manana(manana_str)
+    return jsonify({"exito": True, "fecha": manana_str, **resultado})
+
+
+@app.route('/api/whatsapp/webhook', methods=['POST'])
+def api_whatsapp_webhook():
+    """
+    Recibe los mensajes entrantes de WhatsApp que reenvía YCloud y contesta
+    automáticamente (vencimiento si ya es cliente, info general si no).
+    Esta URL es la que se configura en el panel de YCloud como webhook.
+    """
+    try:
+        payload = request.json or {}
+        ycloud_whatsapp.procesar_webhook(payload)
+    except Exception as e:
+        print(f"Error procesando webhook de WhatsApp: {e}", file=sys.stderr)
+    # Siempre 200: si le devolvemos un error, YCloud reintenta el mismo mensaje.
+    return jsonify({"recibido": True})
 
 # --- Ejecutar la Aplicación ---
 if __name__ == '__main__':
