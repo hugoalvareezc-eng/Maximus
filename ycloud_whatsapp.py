@@ -35,6 +35,8 @@ GYM_HORARIO = os.environ.get(
     "GYM_HORARIO",
     "Lunes a viernes de 5:00am a 10:00pm, sábado de 5:00am a 3:30pm y domingo de 7:00am a 2:30pm."
 )
+GYM_LATITUD = float(os.environ.get("GYM_LATITUD", "20.2288107"))
+GYM_LONGITUD = float(os.environ.get("GYM_LONGITUD", "-99.2067304"))
 
 YCLOUD_API_URL = "https://api.ycloud.com/v2/whatsapp/messages"
 
@@ -106,6 +108,24 @@ def enviar_texto(telefono, texto):
     return _post_mensaje(payload)
 
 
+def enviar_ubicacion(telefono):
+    """Manda el pin de ubicación del gym (mapa nativo de WhatsApp), no solo
+    la dirección en texto. Igual que enviar_texto, solo válido dentro de
+    las 24h de una conversación que el cliente inició."""
+    payload = {
+        "from": YCLOUD_WHATSAPP_FROM,
+        "to": f"52{db.normalizar_telefono(telefono)}",
+        "type": "location",
+        "location": {
+            "latitude": GYM_LATITUD,
+            "longitude": GYM_LONGITUD,
+            "name": GYM_NOMBRE,
+            "address": GYM_DIRECCION,
+        },
+    }
+    return _post_mensaje(payload)
+
+
 def enviar_recordatorios_de_manana(fecha_manana_str):
     """
     Recorre a todos los clientes cuya fecha_vencimiento es fecha_manana_str
@@ -133,7 +153,7 @@ def _contiene_alguna(texto, palabras):
 def _info_general():
     return (
         f"Somos {GYM_NOMBRE} 💪\n\n"
-        f"📍 Dirección: {GYM_DIRECCION}\n"
+        f"📍 Dirección: {GYM_DIRECCION} (te mando la ubicación abajo)\n"
         f"🕒 Horario: {GYM_HORARIO}\n\n"
         "💳 Precios:\n"
         "- Mes Normal: $420\n"
@@ -152,6 +172,8 @@ def construir_respuesta(telefono, texto_recibido):
       se le manda su fecha de vencimiento (lo más probable que quiera saber).
     - Si el número no está registrado (nunca ha ido): se le manda la
       información general del gym.
+    Devuelve {"texto": str, "ubicacion": bool} — 'ubicacion' indica si,
+    además del texto, hay que mandar el pin del mapa.
     """
     cliente = db.buscar_cliente_por_telefono(telefono)
     texto_recibido = texto_recibido or ""
@@ -162,8 +184,8 @@ def construir_respuesta(telefono, texto_recibido):
     quiere_direccion = _contiene_alguna(texto_recibido, ["direccion", "dirección", "ubicacion", "ubicación", "donde", "dónde"])
 
     if not cliente:
-        # Nunca ha ido: siempre se le manda la info general, sin importar qué haya escrito.
-        return _info_general()
+        # Nunca ha ido: siempre se le manda la info general (con ubicación), sin importar qué haya escrito.
+        return {"texto": _info_general(), "ubicacion": True}
 
     partes = []
     if quiere_precio:
@@ -173,11 +195,11 @@ def construir_respuesta(telefono, texto_recibido):
     if quiere_horario:
         partes.append(f"🕒 Horario: {GYM_HORARIO}")
     if quiere_direccion:
-        partes.append(f"📍 Dirección: {GYM_DIRECCION}")
+        partes.append(f"📍 Dirección: {GYM_DIRECCION} (te mando la ubicación abajo)")
     if quiere_vencimiento or not partes:
         partes.append(f"Hola {cliente['nombre']}, tu membresía vence el {cliente['fecha_vencimiento']}.")
 
-    return "\n\n".join(partes)
+    return {"texto": "\n\n".join(partes), "ubicacion": quiere_direccion}
 
 
 def procesar_webhook(payload):
@@ -203,4 +225,7 @@ def procesar_webhook(payload):
         return {"exito": False, "error": "No se reconoció el remitente en el payload"}
 
     respuesta = construir_respuesta(telefono, texto)
-    return enviar_texto(telefono, respuesta)
+    resultado = enviar_texto(telefono, respuesta["texto"])
+    if respuesta["ubicacion"]:
+        enviar_ubicacion(telefono)
+    return resultado
