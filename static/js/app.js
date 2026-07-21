@@ -705,38 +705,54 @@ function msjError(mensaje) {
 async function manejarClicIngresoEstandar(evento) {
     const boton = evento.currentTarget;
     const tipo = boton.dataset.tipo;
-    const monto = parseFloat(boton.dataset.monto);
+    const montoTotal = parseFloat(boton.dataset.monto);
     const requiereNombre = boton.dataset.requiereNombre === 'true';
     let nombre = null;
+    let montoPagado = montoTotal;
 
     try {
         if (requiereNombre) {
-            const { value: nombreIngresado } = await Swal.fire({
+            const { value: formValues } = await Swal.fire({
                 title: `Registro de ${tipo}`,
-                text: "Ingrese el nombre del cliente (si ya está registrado, elíjalo de las sugerencias):",
-                input: 'text',
-                inputPlaceholder: 'Nombre completo',
-                inputAttributes: { autocomplete: 'off' },
+                html: `
+                    <div style="text-align:left; display:flex; flex-direction:column; gap:14px; margin-top:6px;">
+                        <div>
+                            <label style="color:var(--color-texto-secundario); font-weight:600; font-size:0.85em;">Nombre del cliente (si ya está registrado, elíjalo de las sugerencias):</label>
+                            <input id="swal-input-nombre" class="swal2-input" placeholder="Nombre completo" autocomplete="off" style="margin:6px 0 0; width:90%;">
+                        </div>
+                        <div>
+                            <label style="color:var(--color-texto-secundario); font-weight:600; font-size:0.85em;">Monto a pagar hoy (costo total: $${montoTotal.toFixed(2)}, puede ser un abono):</label>
+                            <input id="swal-input-monto" class="swal2-input" type="number" step="0.01" min="0.01" value="${montoTotal.toFixed(2)}" style="margin:6px 0 0; width:90%;">
+                        </div>
+                    </div>
+                `,
                 showCancelButton: true,
                 confirmButtonText: 'Registrar',
                 cancelButtonText: 'Cancelar',
                 confirmButtonColor: '#2980b9',
-                didOpen: () => adjuntarAutocompletadoNombre(Swal.getInput()),
-                inputValidator: (value) => {
-                    if (!value) { return 'El nombre es obligatorio'; }
+                focusConfirm: false,
+                didOpen: () => adjuntarAutocompletadoNombre(document.getElementById('swal-input-nombre')),
+                preConfirm: () => {
+                    const nombreVal = document.getElementById('swal-input-nombre').value.trim();
+                    const montoVal = parseFloat(document.getElementById('swal-input-monto').value);
+                    if (!nombreVal) { Swal.showValidationMessage('El nombre es obligatorio'); return false; }
+                    if (isNaN(montoVal) || montoVal <= 0) { Swal.showValidationMessage('Ingrese un monto válido'); return false; }
+                    if (montoVal > montoTotal + 0.001) { Swal.showValidationMessage(`El pago no puede ser mayor a $${montoTotal.toFixed(2)}`); return false; }
+                    return { nombre: nombreVal, monto: montoVal };
                 }
             });
-            
-            if (!nombreIngresado) return; 
-            nombre = capitalizarNombre(nombreIngresado);
+
+            if (!formValues) return;
+            nombre = capitalizarNombre(formValues.nombre);
+            montoPagado = formValues.monto;
         }
 
-        const payload = { tipo: tipo, monto_pagado: monto, monto_total: monto, nombre: nombre };
+        const payload = { tipo: tipo, monto_pagado: montoPagado, monto_total: montoTotal, nombre: nombre };
         const respuesta = await postData('/api/registrar_ingreso', payload);
-        
+
         if (respuesta.exito) {
             msjExito(respuesta.mensaje);
-            setTimeout(() => location.reload(), 1000); 
+            setTimeout(() => location.reload(), 1000);
         } else {
             msjError(respuesta.error);
         }
@@ -788,8 +804,12 @@ async function manejarOtrosPagos() {
             </div>
         </div>
         <div class="control-formulario">
-            <label for="modal-input-monto">Monto Total Pagado:</label>
-            <input type="number" id="modal-input-monto" step="0.01" placeholder="Ej: 1000.00" min="0.01">
+            <label for="modal-input-monto-total">Monto Total del Plan:</label>
+            <input type="number" id="modal-input-monto-total" step="0.01" placeholder="Ej: 1000.00" min="0.01">
+        </div>
+        <div class="control-formulario" style="margin-top:10px;">
+            <label for="modal-input-monto-pagado">Monto que Paga Hoy (puede ser un abono):</label>
+            <input type="number" id="modal-input-monto-pagado" step="0.01" placeholder="Ej: 600.00" min="0.01">
         </div>`;
 
     mostrarModal(titulo, contenido, async () => {
@@ -798,9 +818,8 @@ async function manejarOtrosPagos() {
         const tipo = tipoSeleccionado.dataset.tipo;
         let meses = parseInt(tipoSeleccionado.dataset.meses || '0');
         let dias = 0;
-        const montoTotalInput = document.getElementById('modal-input-monto');
-        if (!montoTotalInput) return;
-        const montoTotal = parseFloat(montoTotalInput.value);
+        const montoTotal = parseFloat(document.getElementById('modal-input-monto-total').value);
+        const montoPagado = parseFloat(document.getElementById('modal-input-monto-pagado').value);
 
         if (tipo === "Otro (Meses)") {
             const mesesInput = document.getElementById('modal-input-meses');
@@ -812,9 +831,11 @@ async function manejarOtrosPagos() {
             dias = parseInt(diasInput.value);
             if (isNaN(dias) || dias <= 0) { msjError("Ingrese un número de días válido."); return; }
         }
-        if (isNaN(montoTotal) || montoTotal <= 0) { msjError("Ingrese un monto total válido."); return; }
+        if (isNaN(montoTotal) || montoTotal <= 0) { msjError("Ingrese un monto total del plan válido."); return; }
+        if (isNaN(montoPagado) || montoPagado <= 0) { msjError("Ingrese cuánto paga hoy."); return; }
+        if (montoPagado > montoTotal + 0.001) { msjError(`Lo que paga ($${montoPagado.toFixed(2)}) no puede ser mayor al total del plan ($${montoTotal.toFixed(2)}).`); return; }
 
-        const payload = { tipo: tipo, nombre: nombre, monto_pagado: montoTotal, monto_total: montoTotal, meses: meses, dias: dias };
+        const payload = { tipo: tipo, nombre: nombre, monto_pagado: montoPagado, monto_total: montoTotal, meses: meses, dias: dias };
         const respuesta = await postData('/api/registrar_ingreso', payload);
         if (respuesta.exito) {
             ocultarModal();
@@ -822,6 +843,16 @@ async function manejarOtrosPagos() {
             setTimeout(() => location.reload(), 1000);
         }
         else { msjError(respuesta.error); }
+    });
+
+    // Cuando escriben el total, se copia a "paga hoy" mientras no lo hayan tocado a mano
+    // (para no pisar un abono ya escrito si luego ajustan el total).
+    let montoPagadoTocado = false;
+    document.getElementById('modal-input-monto-pagado')?.addEventListener('input', () => { montoPagadoTocado = true; });
+    document.getElementById('modal-input-monto-total')?.addEventListener('input', (e) => {
+        if (!montoPagadoTocado) {
+            document.getElementById('modal-input-monto-pagado').value = e.target.value;
+        }
     });
 
     document.querySelectorAll('#modal-botones-otros button').forEach(btn => {
