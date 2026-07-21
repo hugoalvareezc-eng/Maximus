@@ -715,14 +715,14 @@ async function manejarClicIngresoEstandar(evento) {
             const { value: formValues } = await Swal.fire({
                 title: `Registro de ${tipo}`,
                 html: `
-                    <div style="text-align:left; display:flex; flex-direction:column; gap:14px; margin-top:6px;">
+                    <div style="text-align:left; margin-top:6px;">
                         <div>
-                            <label style="color:var(--color-texto-secundario); font-weight:600; font-size:0.85em;">Nombre del cliente (si ya está registrado, elíjalo de las sugerencias):</label>
-                            <input id="swal-input-nombre" class="swal2-input" placeholder="Nombre completo" autocomplete="off" style="margin:6px 0 0; width:90%;">
+                            <label style="color:var(--color-texto-secundario); font-weight:bold; font-size:0.9em;">Nombre del cliente (si ya está registrado, elíjalo de las sugerencias):</label>
+                            <input id="swal-input-nombre" class="swal2-input" placeholder="Nombre completo" autocomplete="off" style="width:90%; margin:5px auto 0; display:block;">
                         </div>
-                        <div>
-                            <label style="color:var(--color-texto-secundario); font-weight:600; font-size:0.85em;">Monto a pagar hoy (costo total: $${montoTotal.toFixed(2)}, puede ser un abono):</label>
-                            <input id="swal-input-monto" class="swal2-input" type="number" step="0.01" min="0.01" value="${montoTotal.toFixed(2)}" style="margin:6px 0 0; width:90%;">
+                        <div style="margin-top:15px;">
+                            <label style="color:var(--color-texto-secundario); font-weight:bold; font-size:0.9em;">Monto a pagar hoy (costo total: $${montoTotal.toFixed(2)}, puede ser un abono):</label>
+                            <input id="swal-input-monto" class="swal2-input" type="number" step="0.01" min="0.01" value="${montoTotal.toFixed(2)}" style="width:90%; margin:5px auto 0; display:block;">
                         </div>
                     </div>
                 `,
