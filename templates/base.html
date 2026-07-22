@@ -14,18 +14,116 @@
 <script src="{{ url_for('static', filename='js/app.js') }}?v=2" defer></script>
 </head>
 <body>
+    <svg style="position:absolute; width:0; height:0; overflow:hidden;" aria-hidden="true">
+        <defs>
+            <symbol id="icon-wallet" viewBox="0 0 24 24">
+                <path d="M21 12V7H5a2 2 0 0 1 0-4h14v4"/>
+                <path d="M3 5v14a2 2 0 0 0 2 2h16v-5"/>
+                <path d="M18 12a2 2 0 0 0 0 4h4v-4Z"/>
+            </symbol>
+            <symbol id="icon-calendar-x" viewBox="0 0 24 24">
+                <rect width="18" height="18" x="3" y="4" rx="2"/>
+                <path d="M3 10h18"/>
+                <path d="M8 2v4"/>
+                <path d="M16 2v4"/>
+                <path d="m9.5 14.5 5 5"/>
+                <path d="m14.5 14.5-5 5"/>
+            </symbol>
+            <symbol id="icon-coins" viewBox="0 0 24 24">
+                <circle cx="8" cy="8" r="6"/>
+                <path d="M18.09 10.37A6 6 0 1 1 10.34 18"/>
+                <path d="M7 6h1v4"/>
+                <path d="m16.71 13.88.7.71-2.82 2.82"/>
+            </symbol>
+            <symbol id="icon-calendar" viewBox="0 0 24 24">
+                <rect width="18" height="18" x="3" y="4" rx="2"/>
+                <path d="M3 10h18"/>
+                <path d="M8 2v4"/>
+                <path d="M16 2v4"/>
+            </symbol>
+            <symbol id="icon-package" viewBox="0 0 24 24">
+                <path d="M16.5 9.4 7.5 4.21"/>
+                <path d="M21 16V8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16Z"/>
+                <path d="M3.29 7 12 12l8.71-5"/>
+                <path d="M12 22V12"/>
+            </symbol>
+            <symbol id="icon-bar-chart" viewBox="0 0 24 24">
+                <path d="M3 3v18h18"/>
+                <path d="M18 17V9"/>
+                <path d="M13 17V5"/>
+                <path d="M8 17v-3"/>
+            </symbol>
+            <symbol id="icon-plus" viewBox="0 0 24 24">
+                <path d="M5 12h14"/>
+                <path d="M12 5v14"/>
+            </symbol>
+            <symbol id="icon-minus" viewBox="0 0 24 24">
+                <path d="M5 12h14"/>
+            </symbol>
+            <symbol id="icon-dollar" viewBox="0 0 24 24">
+                <circle cx="12" cy="12" r="10"/>
+                <path d="M16 8h-6a2 2 0 1 0 0 4h4a2 2 0 1 1 0 4H8"/>
+                <path d="M12 18V6"/>
+            </symbol>
+            <symbol id="icon-trash" viewBox="0 0 24 24">
+                <path d="M3 6h18"/>
+                <path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6"/>
+                <path d="M8 6V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/>
+                <path d="M10 11v6"/>
+                <path d="M14 11v6"/>
+            </symbol>
+            <symbol id="icon-credit-card" viewBox="0 0 24 24">
+                <rect width="20" height="14" x="2" y="5" rx="2"/>
+                <path d="M2 10h20"/>
+            </symbol>
+            <symbol id="icon-lock" viewBox="0 0 24 24">
+                <rect width="18" height="11" x="3" y="11" rx="2"/>
+                <path d="M7 11V7a5 5 0 0 1 10 0v4"/>
+            </symbol>
+            <symbol id="icon-search" viewBox="0 0 24 24">
+                <circle cx="11" cy="11" r="8"/>
+                <path d="m21 21-4.3-4.3"/>
+            </symbol>
+            <symbol id="icon-check-circle" viewBox="0 0 24 24">
+                <circle cx="12" cy="12" r="10"/>
+                <path d="m9 12 2 2 4-4"/>
+            </symbol>
+            <symbol id="icon-pencil" viewBox="0 0 24 24">
+                <path d="M17 3a2.85 2.83 0 1 1 4 4L7.5 20.5 2 22l1.5-5.5Z"/>
+                <path d="m15 5 4 4"/>
+            </symbol>
+            <symbol id="icon-graduation-cap" viewBox="0 0 24 24">
+                <path d="M22 10 12 5 2 10l10 5 10-5Z"/>
+                <path d="M6 12v5c3 3 9 3 12 0v-5"/>
+            </symbol>
+            <symbol id="icon-clock" viewBox="0 0 24 24">
+                <circle cx="12" cy="12" r="10"/>
+                <path d="M12 6v6l4 2"/>
+            </symbol>
+            <symbol id="icon-user" viewBox="0 0 24 24">
+                <path d="M19 21v-2a4 4 0 0 0-4-4H9a4 4 0 0 0-4 4v2"/>
+                <circle cx="12" cy="7" r="4"/>
+            </symbol>
+            <symbol id="icon-more" viewBox="0 0 24 24">
+                <circle cx="12" cy="12" r="1.5"/>
+                <circle cx="19" cy="12" r="1.5"/>
+                <circle cx="5" cy="12" r="1.5"/>
+            </symbol>
+        </defs>
+    </svg>
+
     <header>
 <div class="logo">
     <img src="{{ url_for('static', filename='imagenes/log.png') }}" alt="Logo Gimnasio" style="height: 105px;">
 </div>
         <nav>
             <ul>
-                <li><a href="{{ url_for('index') }}" class="{{ 'active' if request.path == url_for('index') else '' }}">💰 Registro</a></li>
-                <li><a href="{{ url_for('vencidos') }}" class="{{ 'active' if request.path == url_for('vencidos') else '' }}">❌ Vencidos</a></li>
-                <li><a href="{{ url_for('deudores') }}" class="{{ 'active' if request.path == url_for('deudores') else '' }}">💸 Deudores</a></li>
-                <li><a href="{{ url_for('agenda') }}" class="{{ 'active' if request.path == url_for('agenda') else '' }}">🗓️ Agenda</a></li>
-                <li><a href="{{ url_for('inventario') }}" class="{{ 'active' if request.path == url_for('inventario') else '' }}">📦 Inventario</a></li>
-                <li><a href="{{ url_for('historial') }}" class="{{ 'active' if request.path == url_for('historial') else '' }}">📊 Historial</a></li>
+                <li><a href="{{ url_for('index') }}" class="{{ 'active' if request.path == url_for('index') else '' }}"><svg class="icon"><use href="#icon-wallet"/></svg> Registro</a></li>
+                <li><a href="{{ url_for('vencidos') }}" class="{{ 'active' if request.path == url_for('vencidos') else '' }}"><svg class="icon"><use href="#icon-calendar-x"/></svg> Vencidos</a></li>
+                <li><a href="{{ url_for('deudores') }}" class="{{ 'active' if request.path == url_for('deudores') else '' }}"><svg class="icon"><use href="#icon-coins"/></svg> Deudores</a></li>
+                <li><a href="{{ url_for('agenda') }}" class="{{ 'active' if request.path == url_for('agenda') else '' }}"><svg class="icon"><use href="#icon-calendar"/></svg> Agenda</a></li>
+                <li><a href="{{ url_for('inventario') }}" class="{{ 'active' if request.path == url_for('inventario') else '' }}"><svg class="icon"><use href="#icon-package"/></svg> Inventario</a></li>
+                <li><a href="{{ url_for('historial') }}" class="{{ 'active' if request.path == url_for('historial') else '' }}"><svg class="icon"><use href="#icon-bar-chart"/></svg> Historial</a></li>
             </ul>
         </nav>
         <div class="fecha-hora" id="fecha-hora-actual">
@@ -43,27 +141,27 @@
     <!-- Barra de navegación inferior (solo móvil) -->
     <nav class="nav-bottom">
         <a href="{{ url_for('index') }}" class="{{ 'active' if request.path == url_for('index') else '' }}">
-            <span class="nav-icon">💰</span>
+            <span class="nav-icon"><svg class="icon"><use href="#icon-wallet"/></svg></span>
             <span class="nav-label">Registro</span>
         </a>
         <a href="{{ url_for('vencidos') }}" class="{{ 'active' if request.path == url_for('vencidos') else '' }}">
-            <span class="nav-icon">❌</span>
+            <span class="nav-icon"><svg class="icon"><use href="#icon-calendar-x"/></svg></span>
             <span class="nav-label">Vencidos</span>
         </a>
         <a href="{{ url_for('deudores') }}" class="{{ 'active' if request.path == url_for('deudores') else '' }}">
-            <span class="nav-icon">💸</span>
+            <span class="nav-icon"><svg class="icon"><use href="#icon-coins"/></svg></span>
             <span class="nav-label">Deudores</span>
         </a>
         <a href="{{ url_for('agenda') }}" class="{{ 'active' if request.path == url_for('agenda') else '' }}">
-            <span class="nav-icon">🗓️</span>
+            <span class="nav-icon"><svg class="icon"><use href="#icon-calendar"/></svg></span>
             <span class="nav-label">Agenda</span>
         </a>
         <a href="{{ url_for('inventario') }}" class="{{ 'active' if request.path == url_for('inventario') else '' }}">
-            <span class="nav-icon">📦</span>
+            <span class="nav-icon"><svg class="icon"><use href="#icon-package"/></svg></span>
             <span class="nav-label">Inventario</span>
         </a>
         <a href="{{ url_for('historial') }}" class="{{ 'active' if request.path == url_for('historial') else '' }}">
-            <span class="nav-icon">📊</span>
+            <span class="nav-icon"><svg class="icon"><use href="#icon-bar-chart"/></svg></span>
             <span class="nav-label">Historial</span>
         </a>
     </nav>

@@ -88,11 +88,11 @@ def inicializar_bd():
         conn.close()
 
 # --- FUNCIONES DE MANEJO DE FECHA ---
-def calcular_vencimiento(fecha_base_str, meses=0, semanas=0):
+def calcular_vencimiento(fecha_base_str, meses=0, semanas=0, dias=0):
     """Calcula la nueva fecha de vencimiento a partir de una fecha base."""
     try:
         fecha_base = datetime.strptime(fecha_base_str, '%Y-%m-%d')
-        nueva_fecha = fecha_base + relativedelta(months=meses) + timedelta(days=semanas * 7)
+        nueva_fecha = fecha_base + relativedelta(months=meses) + timedelta(days=semanas * 7 + dias)
         return nueva_fecha.strftime('%Y-%m-%d')
     except ValueError:
         return None
@@ -109,12 +109,16 @@ def obtener_vencimiento_actual(nombre):
     conn.close()
     return resultado[0] if resultado else None
 
-def registrar_pago_cliente(nombre, tipo_pago, monto_total_membresia, monto_pagado_hoy, meses=0, semanas=0):
+def registrar_pago_cliente(nombre, tipo_pago, monto_total_membresia, monto_pagado_hoy, meses=0, semanas=0, dias_ya_asistidos=0, dias=0):
     """
     Registra el pago (completo O abono) de una membresía.
     1. Activa su membresía (calcula nuevo vencimiento).
     2. Registra el 'monto_pagado_hoy' en la caja del día.
     3. Si hay un restante, lo añade a la tabla 'deudores'.
+
+    'dias_ya_asistidos' cubre el caso de un cliente que venció pero siguió
+    entrenando antes de pagar: esos días se descuentan del nuevo periodo
+    en vez de regalarlos, recorriendo la fecha base hacia atrás.
     """
     conn = crear_conexion()
     if conn is None: return False
@@ -122,15 +126,17 @@ def registrar_pago_cliente(nombre, tipo_pago, monto_total_membresia, monto_pagad
     hoy_dt = (datetime.utcnow() - timedelta(hours=6)).replace(hour=0, minute=0, second=0, microsecond=0)
     hoy_str = hoy_dt.strftime('%Y-%m-%d')
     vencimiento_existente_str = obtener_vencimiento_actual(nombre)
-    
+
     # Lógica de fecha de inicio de membresía
     fecha_base_calculo = hoy_str # Por defecto, la membresía corre desde HOY
     if vencimiento_existente_str:
         vencimiento_existente_dt = datetime.strptime(vencimiento_existente_str, '%Y-%m-%d')
         if vencimiento_existente_dt > hoy_dt: # Si paga por adelantado
             fecha_base_calculo = vencimiento_existente_dt.strftime('%Y-%m-%d')
-    
-    nueva_fecha_vencimiento = calcular_vencimiento(fecha_base_calculo, meses=meses, semanas=semanas)
+        elif dias_ya_asistidos > 0: # Vencido, pero siguió viniendo sin pagar
+            fecha_base_calculo = (hoy_dt - timedelta(days=dias_ya_asistidos)).strftime('%Y-%m-%d')
+
+    nueva_fecha_vencimiento = calcular_vencimiento(fecha_base_calculo, meses=meses, semanas=semanas, dias=dias)
 
     try:
         cursor = conn.cursor()
@@ -236,6 +242,79 @@ def obtener_proximos_vencimientos(fecha_actual):
     finally:
         if conn: conn.close()
 
+def normalizar_telefono(telefono):
+    """Deja solo dígitos y se queda con los últimos 10 (número local mexicano),
+    para poder comparar '5215512345678', '525512345678' y '5512345678' como
+    el mismo número sin importar el prefijo de país que haya mandado WhatsApp."""
+    if not telefono:
+        return None
+    solo_digitos = ''.join(c for c in telefono if c.isdigit())
+    return solo_digitos[-10:] if len(solo_digitos) >= 10 else (solo_digitos or None)
+
+def obtener_clientes_que_vencen(fecha_str):
+    """Clientes cuya fecha_vencimiento es exactamente 'fecha_str' (YYYY-MM-DD)
+    y tienen teléfono registrado. Se usa para el recordatorio de un día antes."""
+    conn = crear_conexion()
+    if conn is None: return []
+    try:
+        cursor = conn.cursor()
+        cursor.execute(
+            "SELECT nombre, telefono, fecha_vencimiento FROM clientes "
+            "WHERE fecha_vencimiento = %s AND telefono IS NOT NULL AND telefono != ''",
+            (fecha_str,)
+        )
+        filas = cursor.fetchall()
+        cursor.close()
+        return filas
+    except Exception as e:
+        print(f"Error al obtener clientes que vencen: {e}", file=sys.stderr)
+        return []
+    finally:
+        if conn: conn.close()
+
+def buscar_cliente_por_telefono(telefono):
+    """Busca un cliente por teléfono (comparando solo los últimos 10 dígitos).
+    Devuelve dict con nombre y fecha_vencimiento, o None si no está registrado."""
+    numero = normalizar_telefono(telefono)
+    if not numero:
+        return None
+    conn = crear_conexion()
+    if conn is None: return None
+    try:
+        cursor = conn.cursor()
+        cursor.execute(
+            "SELECT nombre, fecha_vencimiento, telefono FROM clientes "
+            "WHERE telefono IS NOT NULL AND telefono != '' "
+            "AND RIGHT(REGEXP_REPLACE(telefono, '[^0-9]', '', 'g'), 10) = %s",
+            (numero,)
+        )
+        fila = cursor.fetchone()
+        cursor.close()
+        if not fila:
+            return None
+        return {"nombre": fila[0], "fecha_vencimiento": fila[1]}
+    except Exception as e:
+        print(f"Error al buscar cliente por teléfono: {e}", file=sys.stderr)
+        return None
+    finally:
+        if conn: conn.close()
+
+def obtener_todos_los_nombres():
+    """Devuelve los nombres de todos los clientes registrados, para autocompletado en formularios."""
+    conn = crear_conexion()
+    if conn is None: return []
+    try:
+        cursor = conn.cursor()
+        cursor.execute("SELECT nombre FROM clientes ORDER BY nombre")
+        nombres = [fila[0] for fila in cursor.fetchall()]
+        cursor.close()
+        return nombres
+    except Exception as e:
+        print(f"Error al obtener nombres de clientes: {e}", file=sys.stderr)
+        return []
+    finally:
+        if conn: conn.close()
+
 def actualizar_cliente_completo(cliente_id, nombre, fecha_vencimiento_str, telefono):
     """Actualiza todos los datos de un cliente desde el botón de editar."""
     conn = crear_conexion()
@@ -255,7 +334,7 @@ def actualizar_cliente_completo(cliente_id, nombre, fecha_vencimiento_str, telef
         return False
     finally:
         conn.close()
-    
+
 def eliminar_cliente(nombre):
     conn = crear_conexion()
     if conn is None: return False

@@ -11,5 +11,11 @@
       "src": "/(.*)",
       "dest": "app_web.py"
     }
+  ],
+  "crons": [
+    {
+      "path": "/api/cron/recordatorios",
+      "schedule": "0 15 * * *"
+    }
   ]
 }

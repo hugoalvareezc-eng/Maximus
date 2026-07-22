@@ -2,6 +2,7 @@ import sys
 import os
 from flask import Flask, render_template, request, jsonify, redirect, url_for
 import gimnasio_crud as db
+import ycloud_whatsapp
 from datetime import datetime, timedelta
 import locale
 
@@ -126,6 +127,11 @@ def historial():
 
 # --- API (Endpoints para JavaScript) ---
 
+@app.route('/api/clientes/nombres')
+def api_nombres_clientes():
+    """Lista de nombres de clientes existentes, para autocompletado al cobrar/registrar."""
+    return jsonify(db.obtener_todos_los_nombres())
+
 @app.route('/api/registrar_ingreso', methods=['POST'])
 def api_registrar_ingreso():
     """API para registrar un ingreso (membresía, producto o abono)."""
@@ -134,7 +140,7 @@ def api_registrar_ingreso():
         tipo_ingreso = data.get('tipo')
 
         # --- CASO 1: Es una membresía ---
-        if tipo_ingreso in TIEMPO or tipo_ingreso == "Otro (Meses)":
+        if tipo_ingreso in TIEMPO or tipo_ingreso in ("Otro (Meses)", "Otro (Días)", "Mes (Monto Personalizado)"):
             nombre = data.get('nombre')
             monto_pagado_hoy = float(data.get('monto_pagado'))
             if not nombre or not nombre.strip():
@@ -146,24 +152,45 @@ def api_registrar_ingreso():
 
             if tipo_ingreso in ["Anualidad", "Semestre"]:
                 monto_total = float(data.get('monto_total', monto_pagado_hoy))
-                tiempo_config = TIEMPO[tipo_ingreso]
+                tiempo_config = dict(TIEMPO[tipo_ingreso], dias=0)
+            elif tipo_ingreso == "Mes (Monto Personalizado)":
+                 # 1 mes de duración, pero con un monto distinto al precio de lista
+                 # (para cuando se le cobra menos a alguien).
+                 monto_total = float(data.get('monto_total', monto_pagado_hoy))
+                 tiempo_config = {"meses": 1, "semanas": 0, "dias": 0}
+                 tipo_ingreso = "Mes (Monto Personalizado)"
             elif tipo_ingreso == "Otro (Meses)":
                  monto_total = float(data.get('monto_total', monto_pagado_hoy))
                  meses_otro = int(data.get('meses', 0))
                  if meses_otro <= 0: return jsonify({"exito": False, "error": "Número de meses inválido para 'Otro'."}), 400
-                 tiempo_config = {"meses": meses_otro, "semanas": 0}
+                 tiempo_config = {"meses": meses_otro, "semanas": 0, "dias": 0}
                  # Actualizar tipo_ingreso para que se guarde bien en BD
                  tipo_ingreso = f"Otro ({meses_otro} Meses)"
+            elif tipo_ingreso == "Otro (Días)":
+                 monto_total = float(data.get('monto_total', monto_pagado_hoy))
+                 dias_otro = int(data.get('dias', 0))
+                 if dias_otro <= 0: return jsonify({"exito": False, "error": "Número de días inválido."}), 400
+                 tiempo_config = {"meses": 0, "semanas": 0, "dias": dias_otro}
+                 tipo_ingreso = f"Otro ({dias_otro} Días)"
             else: # Membresías estándar
                 monto_total = float(PRECIOS.get(tipo_ingreso, 0))
                 tiempo_config = TIEMPO.get(tipo_ingreso)
+                tiempo_config = dict(tiempo_config, dias=0) if tiempo_config else None
                 if not tiempo_config or monto_total <= 0:
                      return jsonify({"exito": False, "error": "Tipo de membresía estándar no válido."}), 400
 
+            if monto_pagado_hoy <= 0:
+                return jsonify({"exito": False, "error": "El monto pagado debe ser mayor a cero."}), 400
             if monto_pagado_hoy > monto_total + 0.001: # Tolerancia flotante
                 return jsonify({"exito": False, "error": f"El pago (${monto_pagado_hoy:.2f}) no puede ser mayor al costo total (${monto_total:.2f})."}), 400
 
-            if db.registrar_pago_cliente(nombre_limpio, tipo_ingreso, monto_total, monto_pagado_hoy, tiempo_config["meses"], tiempo_config["semanas"]):
+            # Días que el cliente siguió asistiendo ya vencido, antes de pagar hoy
+            # (se descuentan del nuevo periodo en vez de regalarlos).
+            dias_ya_asistidos = int(data.get('dias_ya_asistidos', 0) or 0)
+            if dias_ya_asistidos < 0:
+                dias_ya_asistidos = 0
+
+            if db.registrar_pago_cliente(nombre_limpio, tipo_ingreso, monto_total, monto_pagado_hoy, tiempo_config["meses"], tiempo_config["semanas"], dias_ya_asistidos, tiempo_config.get("dias", 0)):
                 mensaje = f"Pago de ${monto_pagado_hoy:.2f} registrado para {nombre_limpio}."
                 if monto_total - monto_pagado_hoy > 0.001:
                     mensaje += f" Se añadió una deuda por ${monto_total - monto_pagado_hoy:.2f}."
@@ -485,6 +512,44 @@ def api_editar_cliente():
         return jsonify({"exito": False, "error": "Datos inválidos."}), 400
     except Exception as e:
         return jsonify({"exito": False, "error": str(e)}), 500
+
+# --- WhatsApp (YCloud) ---
+
+@app.route('/api/cron/recordatorios', methods=['POST', 'GET'])
+def api_cron_recordatorios():
+    """
+    Pensada para llamarse UNA VEZ AL DÍA desde un cron (ver vercel.json),
+    no desde el navegador. Manda el recordatorio de vencimiento a todos los
+    clientes cuya membresía vence mañana. Protegida con CRON_SECRET para que
+    nadie más pueda dispararla ni gastar mensajes de WhatsApp.
+    """
+    secreto_esperado = ycloud_whatsapp.CRON_SECRET
+    auth_header = request.headers.get('Authorization', '')
+    secreto_recibido = (
+        auth_header[7:] if auth_header.startswith('Bearer ') else None
+    ) or request.headers.get('X-Cron-Secret') or request.args.get('secreto')
+    if not secreto_esperado or secreto_recibido != secreto_esperado:
+        return jsonify({"exito": False, "error": "No autorizado."}), 401
+
+    manana_str = (datetime.utcnow() - timedelta(hours=6) + timedelta(days=1)).strftime('%Y-%m-%d')
+    resultado = ycloud_whatsapp.enviar_recordatorios_de_manana(manana_str)
+    return jsonify({"exito": True, "fecha": manana_str, **resultado})
+
+
+@app.route('/api/whatsapp/webhook', methods=['POST'])
+def api_whatsapp_webhook():
+    """
+    Recibe los mensajes entrantes de WhatsApp que reenvía YCloud y contesta
+    automáticamente (vencimiento si ya es cliente, info general si no).
+    Esta URL es la que se configura en el panel de YCloud como webhook.
+    """
+    try:
+        payload = request.json or {}
+        ycloud_whatsapp.procesar_webhook(payload)
+    except Exception as e:
+        print(f"Error procesando webhook de WhatsApp: {e}", file=sys.stderr)
+    # Siempre 200: si le devolvemos un error, YCloud reintenta el mismo mensaje.
+    return jsonify({"recibido": True})
 
 # --- Ejecutar la Aplicación ---
 if __name__ == '__main__':

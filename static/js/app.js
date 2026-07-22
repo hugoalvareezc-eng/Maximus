@@ -1,7 +1,9 @@
 // Variable global para la corrección de Safari/Chrome al sumar/restar stock
 let ultimaAccionStock = null;
 // Variable para recordar la contraseña del historial temporalmente
-let passwordAprobada = ""; 
+let passwordAprobada = "";
+// Último set de registros cargado en Historial (para redibujar la gráfica al cambiar el tamaño de ventana)
+let ultimosRegistrosHistorial = [];
 
 // --- Ejecutar cuando el DOM esté listo ---
 document.addEventListener('DOMContentLoaded', () => {
@@ -56,6 +58,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
     // --- Página de Registro (index.html) ---
     if (document.querySelector('.pagina-registro')) {
+        cargarNombresClientes();
         document.querySelectorAll('.btn-ingreso[data-tipo]').forEach(boton => {
             boton.addEventListener('click', manejarClicIngresoEstandar);
         });
@@ -271,7 +274,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
         async function cargarHistorial(inicio, fin) {
             if (!inicio || !fin) { msjError("Por favor seleccione ambas fechas."); return; }
-            
+
             const respuesta = await postData('/api/obtener_historial', {
                 password: passwordAprobada, fecha_inicio: inicio, fecha_fin: fin
             });
@@ -282,30 +285,52 @@ document.addEventListener('DOMContentLoaded', () => {
                 document.getElementById('txt-neto').textContent = "$" + respuesta.neto.toFixed(2);
 
                 const tbody = document.getElementById('tabla-historial-body');
-                tbody.innerHTML = ""; 
-                
+                tbody.innerHTML = "";
+
                 if (respuesta.registros.length === 0) {
-                    tbody.innerHTML = "<tr><td colspan='4' style='text-align:center;'>No hay registros en estas fechas</td></tr>";
-                    return;
+                    const filaVacia = document.createElement('tr');
+                    const celdaVacia = document.createElement('td');
+                    celdaVacia.colSpan = 4;
+                    celdaVacia.style.textAlign = 'center';
+                    celdaVacia.textContent = 'No hay registros en estas fechas';
+                    filaVacia.appendChild(celdaVacia);
+                    tbody.appendChild(filaVacia);
+                } else {
+                    respuesta.registros.forEach(reg => {
+                        const fila = document.createElement('tr');
+
+                        const tdFecha = document.createElement('td');
+                        tdFecha.textContent = reg.fecha;
+
+                        const tdConcepto = document.createElement('td');
+                        tdConcepto.textContent = reg.concepto;
+
+                        const tdMonto = document.createElement('td');
+                        tdMonto.textContent = `$${reg.monto.toFixed(2)}`;
+                        tdMonto.style.fontWeight = 'bold';
+                        tdMonto.style.color = reg.es_gasto ? 'var(--color-rojo)' : 'var(--color-verde)';
+
+                        const tdTipo = document.createElement('td');
+                        tdTipo.textContent = reg.es_gasto ? 'Gasto' : 'Ingreso';
+
+                        fila.append(tdFecha, tdConcepto, tdMonto, tdTipo);
+                        tbody.appendChild(fila);
+                    });
                 }
 
-                respuesta.registros.forEach(reg => {
-                    const fila = document.createElement('tr');
-                    const colorMonto = reg.es_gasto ? 'color: var(--color-rojo);' : 'color: var(--color-verde);';
-                    const tipoTexto = reg.es_gasto ? 'Gasto' : 'Ingreso';
-                    
-                    fila.innerHTML = `
-                        <td>${reg.fecha}</td>
-                        <td>${reg.concepto}</td>
-                        <td style="font-weight:bold; ${colorMonto}">$${reg.monto.toFixed(2)}</td>
-                        <td>${tipoTexto}</td>
-                    `;
-                    tbody.appendChild(fila);
-                });
+                ultimosRegistrosHistorial = respuesta.registros;
+                renderGraficaTendencia(respuesta.registros);
+                renderGraficaTopGastos(respuesta.registros);
             } else {
                 msjError(respuesta.error);
             }
         }
+
+        window.addEventListener('resize', debounce(() => {
+            if (panelHistorial.style.display !== 'none') {
+                renderGraficaTendencia(ultimosRegistrosHistorial);
+            }
+        }, 250));
     }
 });
 
@@ -317,7 +342,7 @@ function actualizarReloj() {
     const now = new Date();
     const fecha = now.toLocaleDateString('es-ES', { day: '2-digit', month: '2-digit', year: 'numeric' });
     const hora = now.toLocaleTimeString('es-ES', { hour: '2-digit', minute: '2-digit', second: '2-digit' });
-    el.textContent = `📅 ${fecha} | ⏰ ${hora}`;
+    el.innerHTML = `<svg class="icon"><use href="#icon-calendar"/></svg> ${fecha} | <svg class="icon"><use href="#icon-clock"/></svg> ${hora}`;
 }
 
 // --- Función de Comunicación con el API ---
@@ -378,10 +403,277 @@ function ocultarModal() {
 
 function capitalizarNombre(nombre) {
     if (!nombre || typeof nombre !== 'string') return '';
-    return nombre.trim().replace(/\s+/g, ' ') 
-           .split(' ') 
-           .map(n => n.charAt(0).toUpperCase() + n.slice(1).toLowerCase()) 
-           .join(' '); 
+    return nombre.trim().replace(/\s+/g, ' ')
+           .split(' ')
+           .map(n => n.charAt(0).toUpperCase() + n.slice(1).toLowerCase())
+           .join(' ');
+}
+
+// Caché de nombres de clientes existentes, para sugerir el nombre correcto
+// al cobrar y evitar duplicados por typos.
+let nombresClientesCache = [];
+
+async function cargarNombresClientes() {
+    try {
+        const respuesta = await fetch('/api/clientes/nombres');
+        nombresClientesCache = await respuesta.json();
+    } catch (error) {
+        console.error('No se pudo cargar la lista de clientes para autocompletado:', error);
+    }
+}
+
+// Quita acentos y normaliza mayúsculas, para comparar nombres sin
+// importar cómo se hayan escrito los acentos (mismo criterio que el
+// buscador de Agenda).
+function normalizarTexto(texto) {
+    return (texto || '').normalize('NFD').replace(/[̀-ͯ]/g, '').toLowerCase().trim();
+}
+
+// Convierte texto libre (nombres, conceptos) a HTML seguro para insertarlo
+// con innerHTML (como texto o dentro de un atributo con comillas dobles),
+// evitando que un dato guardado como "<img onerror=...>" se ejecute como
+// HTML al mostrarlo.
+function escaparHtml(texto) {
+    return String(texto == null ? '' : texto)
+        .replace(/&/g, '&amp;')
+        .replace(/</g, '&lt;')
+        .replace(/>/g, '&gt;')
+        .replace(/"/g, '&quot;')
+        .replace(/'/g, '&#39;');
+}
+
+// Reemplaza el autocompletado nativo del navegador (feo e inconsistente
+// entre navegadores) por un desplegable propio, con el mismo estilo del
+// resto de la app, que sugiere clientes ya registrados mientras se escribe.
+function adjuntarAutocompletadoNombre(inputEl) {
+    if (!inputEl) return;
+
+    const contenedor = inputEl.parentElement;
+    contenedor.style.position = 'relative';
+
+    const lista = document.createElement('div');
+    lista.className = 'autocomplete-lista';
+    lista.style.display = 'none';
+    contenedor.appendChild(lista);
+
+    const ocultarLista = () => { lista.style.display = 'none'; lista.innerHTML = ''; };
+
+    const mostrarSugerencias = () => {
+        const consulta = normalizarTexto(inputEl.value);
+        if (!consulta) { ocultarLista(); return; }
+
+        const coincidencias = nombresClientesCache
+            .filter(nombre => normalizarTexto(nombre).includes(consulta))
+            .slice(0, 6);
+
+        if (coincidencias.length === 0) { ocultarLista(); return; }
+
+        lista.innerHTML = coincidencias.map(nombre =>
+            `<div class="autocomplete-item" data-nombre="${escaparHtml(nombre)}">${escaparHtml(nombre)}</div>`
+        ).join('');
+        lista.style.display = 'block';
+    };
+
+    inputEl.addEventListener('input', mostrarSugerencias);
+    inputEl.addEventListener('focus', mostrarSugerencias);
+
+    lista.addEventListener('mousedown', (e) => {
+        const item = e.target.closest('.autocomplete-item');
+        if (!item) return;
+        e.preventDefault();
+        inputEl.value = item.dataset.nombre;
+        inputEl.dispatchEvent(new Event('input'));
+        ocultarLista();
+    });
+
+    inputEl.addEventListener('blur', () => setTimeout(ocultarLista, 150));
+}
+
+function debounce(fn, esperaMs) {
+    let temporizador;
+    return (...args) => {
+        clearTimeout(temporizador);
+        temporizador = setTimeout(() => fn(...args), esperaMs);
+    };
+}
+
+// --- Gráficas de Historial (SVG dibujado a mano, sin librerías externas) ---
+function mostrarTooltip(evento, htmlContenido) {
+    const tip = document.getElementById('tooltip-grafica');
+    if (!tip) return;
+    tip.innerHTML = htmlContenido;
+    tip.style.display = 'block';
+    const desplazamiento = 14;
+    let x = evento.clientX + desplazamiento;
+    let y = evento.clientY + desplazamiento;
+    // Evitar que el tooltip se salga por la derecha o abajo de la pantalla
+    const anchoTip = tip.offsetWidth || 160;
+    const altoTip = tip.offsetHeight || 60;
+    if (x + anchoTip > window.innerWidth) x = evento.clientX - anchoTip - desplazamiento;
+    if (y + altoTip > window.innerHeight) y = evento.clientY - altoTip - desplazamiento;
+    tip.style.left = x + 'px';
+    tip.style.top = y + 'px';
+}
+
+function ocultarTooltip() {
+    const tip = document.getElementById('tooltip-grafica');
+    if (tip) tip.style.display = 'none';
+}
+
+function formatearMontoCorto(valor) {
+    if (valor >= 1000) return '$' + (valor / 1000).toFixed(valor % 1000 === 0 ? 0 : 1) + 'k';
+    return '$' + Math.round(valor);
+}
+
+function formatearFechaCorta(fechaStr) {
+    const partes = fechaStr.split('-');
+    return `${partes[2]}/${partes[1]}`;
+}
+
+function formatearFechaLarga(fechaStr) {
+    const fecha = new Date(fechaStr + 'T00:00:00');
+    const texto = fecha.toLocaleDateString('es-MX', { weekday: 'long', day: 'numeric', month: 'short' });
+    return texto.charAt(0).toUpperCase() + texto.slice(1);
+}
+
+// Dibuja un rectángulo con las esquinas superiores redondeadas y la base
+// recta, anclada al eje (así la barra "nace" del piso en vez de flotar).
+function pathBarraRedondeada(x, y, w, h, r) {
+    if (h <= 0 || w <= 0) return '';
+    const radio = Math.min(r, w / 2, h);
+    return `M${x},${y + h} L${x},${y + radio} Q${x},${y} ${x + radio},${y} L${x + w - radio},${y} Q${x + w},${y} ${x + w},${y + radio} L${x + w},${y + h} Z`;
+}
+
+function agruparPorDia(registros) {
+    const mapa = new Map();
+    registros.forEach(r => {
+        if (!mapa.has(r.fecha)) mapa.set(r.fecha, { fecha: r.fecha, ingreso: 0, gasto: 0 });
+        const dia = mapa.get(r.fecha);
+        if (r.es_gasto) dia.gasto += r.monto; else dia.ingreso += r.monto;
+    });
+    return Array.from(mapa.values()).sort((a, b) => a.fecha.localeCompare(b.fecha));
+}
+
+function renderGraficaTendencia(registros) {
+    const contenedor = document.getElementById('grafica-tendencia');
+    if (!contenedor) return;
+    const datos = agruparPorDia(registros);
+
+    if (datos.length === 0) {
+        contenedor.innerHTML = '<p class="grafica-vacia">Sin movimientos en este rango de fechas.</p>';
+        return;
+    }
+
+    const altoTotal = 220;
+    const margen = { izq: 44, der: 10, sup: 14, inf: 26 };
+    const anchoPorDia = 44;
+    const anchoDisponible = contenedor.clientWidth || 560;
+    const anchoTotal = Math.max(anchoDisponible, datos.length * anchoPorDia + margen.izq + margen.der);
+    const anchoUtil = anchoTotal - margen.izq - margen.der;
+    const altoUtil = altoTotal - margen.sup - margen.inf;
+
+    const maxValorReal = Math.max(1, ...datos.map(d => Math.max(d.ingreso, d.gasto)));
+    const maxValor = maxValorReal * 1.15;
+    const escalaY = valor => altoUtil - (valor / maxValor) * altoUtil;
+
+    const anchoGrupo = anchoUtil / datos.length;
+    const anchoBarra = Math.max(4, Math.min(15, anchoGrupo * 0.30));
+
+    const niveles = 4;
+    let gridSvg = '';
+    for (let i = 0; i <= niveles; i++) {
+        const valor = (maxValor / niveles) * i;
+        const y = margen.sup + escalaY(valor);
+        gridSvg += `<line x1="${margen.izq}" y1="${y.toFixed(1)}" x2="${anchoTotal - margen.der}" y2="${y.toFixed(1)}" class="eje-linea"/>`;
+        gridSvg += `<text x="${margen.izq - 8}" y="${(y + 3.5).toFixed(1)}" class="eje-texto" text-anchor="end">${formatearMontoCorto(valor)}</text>`;
+    }
+
+    let barras = '';
+    let etiquetasX = '';
+    const saltoEtiqueta = datos.length > 12 ? Math.ceil(datos.length / 10) : 1;
+
+    datos.forEach((d, i) => {
+        const xGrupo = margen.izq + i * anchoGrupo;
+        const centro = xGrupo + anchoGrupo / 2;
+        const xIngreso = centro - anchoBarra - 1;
+        const xGasto = centro + 1;
+
+        const yIngreso = margen.sup + escalaY(d.ingreso);
+        const hIngreso = altoUtil - escalaY(d.ingreso);
+        const yGasto = margen.sup + escalaY(d.gasto);
+        const hGasto = altoUtil - escalaY(d.gasto);
+
+        barras += `<path class="barra-ingreso" d="${pathBarraRedondeada(xIngreso, yIngreso, anchoBarra, hIngreso, 3)}"/>`;
+        barras += `<path class="barra-gasto" d="${pathBarraRedondeada(xGasto, yGasto, anchoBarra, hGasto, 3)}"/>`;
+        barras += `<rect class="barra-hit" data-idx="${i}" x="${xGrupo.toFixed(1)}" y="${margen.sup}" width="${anchoGrupo.toFixed(1)}" height="${altoUtil}" fill="transparent"/>`;
+
+        if (i % saltoEtiqueta === 0) {
+            etiquetasX += `<text x="${centro.toFixed(1)}" y="${altoTotal - 8}" class="eje-texto" text-anchor="middle">${formatearFechaCorta(d.fecha)}</text>`;
+        }
+    });
+
+    contenedor.innerHTML = `<svg width="${anchoTotal}" height="${altoTotal}" class="svg-grafica">${gridSvg}${barras}${etiquetasX}</svg>`;
+
+    contenedor.querySelectorAll('.barra-hit').forEach(hit => {
+        hit.addEventListener('mousemove', (evento) => {
+            const d = datos[parseInt(hit.dataset.idx, 10)];
+            mostrarTooltip(evento, `
+                <strong>${formatearFechaLarga(d.fecha)}</strong><br>
+                <span style="color:var(--color-primario);">Ingresos: $${d.ingreso.toFixed(2)}</span><br>
+                <span style="color:var(--color-rojo);">Gastos: $${d.gasto.toFixed(2)}</span><br>
+                Neto: $${(d.ingreso - d.gasto).toFixed(2)}
+            `);
+        });
+        hit.addEventListener('mouseleave', ocultarTooltip);
+    });
+}
+
+function renderGraficaTopGastos(registros) {
+    const contenedor = document.getElementById('grafica-top-gastos');
+    if (!contenedor) return;
+
+    const mapa = new Map();
+    registros.filter(r => r.es_gasto).forEach(r => {
+        mapa.set(r.concepto, (mapa.get(r.concepto) || 0) + r.monto);
+    });
+    let datos = Array.from(mapa.entries())
+        .map(([concepto, monto]) => ({ concepto, monto }))
+        .sort((a, b) => b.monto - a.monto);
+
+    if (datos.length === 0) {
+        contenedor.innerHTML = '<p class="grafica-vacia">No hay gastos registrados en este rango.</p>';
+        return;
+    }
+
+    const TOP_N = 6;
+    let principales = datos.slice(0, TOP_N).map(d => ({ ...d, esOtros: false }));
+    const resto = datos.slice(TOP_N);
+    if (resto.length > 0) {
+        const sumaResto = resto.reduce((acc, d) => acc + d.monto, 0);
+        principales.push({ concepto: `Otros conceptos (${resto.length})`, monto: sumaResto, esOtros: true });
+    }
+
+    const maxValor = Math.max(...principales.map(d => d.monto));
+
+    contenedor.innerHTML = principales.map(d => {
+        const porcentaje = Math.max(3, (d.monto / maxValor) * 100).toFixed(1);
+        const conceptoSeguro = escaparHtml(d.concepto);
+        return `
+            <div class="barra-h-fila ${d.esOtros ? 'es-otros' : ''}" data-concepto="${conceptoSeguro}" data-monto="${d.monto}">
+                <div class="barra-h-encabezado">
+                    <span class="barra-h-etiqueta" title="${conceptoSeguro}">${conceptoSeguro}</span>
+                    <span class="barra-h-valor">$${d.monto.toFixed(2)}</span>
+                </div>
+                <div class="barra-h-pista"><div class="barra-h-relleno" style="width:${porcentaje}%"></div></div>
+            </div>`;
+    }).join('');
+
+    contenedor.querySelectorAll('.barra-h-fila').forEach(fila => {
+        fila.addEventListener('mousemove', (evento) => {
+            mostrarTooltip(evento, `<strong>${escaparHtml(fila.dataset.concepto)}</strong><br>$${parseFloat(fila.dataset.monto).toFixed(2)}`);
+        });
+        fila.addEventListener('mouseleave', ocultarTooltip);
+    });
 }
 
 // --- Helpers de SweetAlert ---
@@ -413,36 +705,54 @@ function msjError(mensaje) {
 async function manejarClicIngresoEstandar(evento) {
     const boton = evento.currentTarget;
     const tipo = boton.dataset.tipo;
-    const monto = parseFloat(boton.dataset.monto);
+    const montoTotal = parseFloat(boton.dataset.monto);
     const requiereNombre = boton.dataset.requiereNombre === 'true';
     let nombre = null;
+    let montoPagado = montoTotal;
 
     try {
         if (requiereNombre) {
-            const { value: nombreIngresado } = await Swal.fire({
+            const { value: formValues } = await Swal.fire({
                 title: `Registro de ${tipo}`,
-                text: "Ingrese el nombre del cliente:",
-                input: 'text',
-                inputPlaceholder: 'Nombre completo',
+                html: `
+                    <div style="text-align:left; margin-top:6px;">
+                        <div>
+                            <label style="color:var(--color-texto-secundario); font-weight:bold; font-size:0.9em;">Nombre del cliente (si ya está registrado, elíjalo de las sugerencias):</label>
+                            <input id="swal-input-nombre" class="swal2-input" placeholder="Nombre completo" autocomplete="off" style="width:90%; margin:5px auto 0; display:block;">
+                        </div>
+                        <div style="margin-top:15px;">
+                            <label style="color:var(--color-texto-secundario); font-weight:bold; font-size:0.9em;">Monto a pagar hoy (costo total: $${montoTotal.toFixed(2)}, puede ser un abono):</label>
+                            <input id="swal-input-monto" class="swal2-input" type="number" step="0.01" min="0.01" value="${montoTotal.toFixed(2)}" style="width:90%; margin:5px auto 0; display:block;">
+                        </div>
+                    </div>
+                `,
                 showCancelButton: true,
                 confirmButtonText: 'Registrar',
                 cancelButtonText: 'Cancelar',
                 confirmButtonColor: '#2980b9',
-                inputValidator: (value) => {
-                    if (!value) { return 'El nombre es obligatorio'; }
+                focusConfirm: false,
+                didOpen: () => adjuntarAutocompletadoNombre(document.getElementById('swal-input-nombre')),
+                preConfirm: () => {
+                    const nombreVal = document.getElementById('swal-input-nombre').value.trim();
+                    const montoVal = parseFloat(document.getElementById('swal-input-monto').value);
+                    if (!nombreVal) { Swal.showValidationMessage('El nombre es obligatorio'); return false; }
+                    if (isNaN(montoVal) || montoVal <= 0) { Swal.showValidationMessage('Ingrese un monto válido'); return false; }
+                    if (montoVal > montoTotal + 0.001) { Swal.showValidationMessage(`El pago no puede ser mayor a $${montoTotal.toFixed(2)}`); return false; }
+                    return { nombre: nombreVal, monto: montoVal };
                 }
             });
-            
-            if (!nombreIngresado) return; 
-            nombre = capitalizarNombre(nombreIngresado);
+
+            if (!formValues) return;
+            nombre = capitalizarNombre(formValues.nombre);
+            montoPagado = formValues.monto;
         }
 
-        const payload = { tipo: tipo, monto_pagado: monto, monto_total: monto, nombre: nombre };
+        const payload = { tipo: tipo, monto_pagado: montoPagado, monto_total: montoTotal, nombre: nombre };
         const respuesta = await postData('/api/registrar_ingreso', payload);
-        
+
         if (respuesta.exito) {
             msjExito(respuesta.mensaje);
-            setTimeout(() => location.reload(), 1000); 
+            setTimeout(() => location.reload(), 1000);
         } else {
             msjError(respuesta.error);
         }
@@ -455,12 +765,14 @@ async function manejarClicIngresoEstandar(evento) {
 async function manejarOtrosPagos() {
     const { value: nombreIngresado } = await Swal.fire({
         title: 'Pago Especial',
-        text: "Ingrese el nombre del cliente:",
+        text: "Ingrese el nombre del cliente (si ya está registrado, elíjalo de las sugerencias):",
         input: 'text',
+        inputAttributes: { autocomplete: 'off' },
         showCancelButton: true,
         confirmButtonText: 'Continuar',
         cancelButtonText: 'Cancelar',
         confirmButtonColor: '#2980b9',
+        didOpen: () => adjuntarAutocompletadoNombre(Swal.getInput()),
         inputValidator: (value) => {
             if (!value) { return 'El nombre es obligatorio.'; }
         }
@@ -471,11 +783,13 @@ async function manejarOtrosPagos() {
 
     const titulo = `Pago Especial para ${nombre}`;
     const contenido = `
-        <p>Seleccione el tipo de membresía especial:</p>
+        <p>Seleccione el tipo de membresía especial (el monto siempre es personalizable):</p>
         <div style="display:flex; gap:8px; flex-wrap:wrap; margin-bottom:16px;" id="modal-botones-otros">
-            <button class="btn-selector-modal" data-tipo="Anualidad" data-meses="12">📅 Anualidad<br><small style="font-weight:400;opacity:0.8;">12 meses</small></button>
-            <button class="btn-selector-modal" data-tipo="Semestre" data-meses="6">📆 Semestre<br><small style="font-weight:400;opacity:0.8;">6 meses</small></button>
-            <button class="btn-selector-modal" data-tipo="Otro (Meses)">✏️ Otro<br><small style="font-weight:400;opacity:0.8;">(Meses)</small></button>
+            <button class="btn-selector-modal" data-tipo="Mes (Monto Personalizado)" data-meses="1"><svg class="icon"><use href="#icon-calendar"/></svg> 1 Mes<br><small style="font-weight:400;opacity:0.8;">monto especial</small></button>
+            <button class="btn-selector-modal" data-tipo="Anualidad" data-meses="12"><svg class="icon"><use href="#icon-calendar"/></svg> Anualidad<br><small style="font-weight:400;opacity:0.8;">12 meses</small></button>
+            <button class="btn-selector-modal" data-tipo="Semestre" data-meses="6"><svg class="icon"><use href="#icon-calendar"/></svg> Semestre<br><small style="font-weight:400;opacity:0.8;">6 meses</small></button>
+            <button class="btn-selector-modal" data-tipo="Otro (Meses)"><svg class="icon"><use href="#icon-pencil"/></svg> Otro<br><small style="font-weight:400;opacity:0.8;">(Meses)</small></button>
+            <button class="btn-selector-modal" data-tipo="Otro (Días)"><svg class="icon"><use href="#icon-clock"/></svg> Por Días<br><small style="font-weight:400;opacity:0.8;">monto especial</small></button>
         </div>
         <div id="campos-otros-meses" style="display: none;">
             <div class="control-formulario">
@@ -483,9 +797,19 @@ async function manejarOtrosPagos() {
                 <input type="number" id="modal-input-meses" placeholder="Ej: 3" min="1">
             </div>
         </div>
+        <div id="campos-otros-dias" style="display: none;">
+            <div class="control-formulario">
+                <label for="modal-input-dias">Cantidad de Días:</label>
+                <input type="number" id="modal-input-dias" placeholder="Ej: 10" min="1">
+            </div>
+        </div>
         <div class="control-formulario">
-            <label for="modal-input-monto">Monto Total Pagado:</label>
-            <input type="number" id="modal-input-monto" step="0.01" placeholder="Ej: 1000.00" min="0.01">
+            <label for="modal-input-monto-total">Monto Total del Plan:</label>
+            <input type="number" id="modal-input-monto-total" step="0.01" placeholder="Ej: 1000.00" min="0.01">
+        </div>
+        <div class="control-formulario" style="margin-top:10px;">
+            <label for="modal-input-monto-pagado">Monto que Paga Hoy (puede ser un abono):</label>
+            <input type="number" id="modal-input-monto-pagado" step="0.01" placeholder="Ej: 600.00" min="0.01">
         </div>`;
 
     mostrarModal(titulo, contenido, async () => {
@@ -493,35 +817,53 @@ async function manejarOtrosPagos() {
         if (!tipoSeleccionado) { msjError("Seleccione un tipo de pago."); return; }
         const tipo = tipoSeleccionado.dataset.tipo;
         let meses = parseInt(tipoSeleccionado.dataset.meses || '0');
-        const montoTotalInput = document.getElementById('modal-input-monto');
-        if (!montoTotalInput) return;
-        const montoTotal = parseFloat(montoTotalInput.value);
+        let dias = 0;
+        const montoTotal = parseFloat(document.getElementById('modal-input-monto-total').value);
+        const montoPagado = parseFloat(document.getElementById('modal-input-monto-pagado').value);
 
         if (tipo === "Otro (Meses)") {
             const mesesInput = document.getElementById('modal-input-meses');
             meses = parseInt(mesesInput.value);
             if (isNaN(meses) || meses <= 0) { msjError("Ingrese un número de meses válido."); return; }
         }
-        if (isNaN(montoTotal) || montoTotal <= 0) { msjError("Ingrese un monto total válido."); return; }
+        if (tipo === "Otro (Días)") {
+            const diasInput = document.getElementById('modal-input-dias');
+            dias = parseInt(diasInput.value);
+            if (isNaN(dias) || dias <= 0) { msjError("Ingrese un número de días válido."); return; }
+        }
+        if (isNaN(montoTotal) || montoTotal <= 0) { msjError("Ingrese un monto total del plan válido."); return; }
+        if (isNaN(montoPagado) || montoPagado <= 0) { msjError("Ingrese cuánto paga hoy."); return; }
+        if (montoPagado > montoTotal + 0.001) { msjError(`Lo que paga ($${montoPagado.toFixed(2)}) no puede ser mayor al total del plan ($${montoTotal.toFixed(2)}).`); return; }
 
-        const payload = { tipo: tipo, nombre: nombre, monto_pagado: montoTotal, monto_total: montoTotal, meses: meses };
+        const payload = { tipo: tipo, nombre: nombre, monto_pagado: montoPagado, monto_total: montoTotal, meses: meses, dias: dias };
         const respuesta = await postData('/api/registrar_ingreso', payload);
-        if (respuesta.exito) { 
-            ocultarModal(); 
+        if (respuesta.exito) {
+            ocultarModal();
             msjExito(respuesta.mensaje);
-            setTimeout(() => location.reload(), 1000); 
+            setTimeout(() => location.reload(), 1000);
         }
         else { msjError(respuesta.error); }
+    });
+
+    // Cuando escriben el total, se copia a "paga hoy" mientras no lo hayan tocado a mano
+    // (para no pisar un abono ya escrito si luego ajustan el total).
+    let montoPagadoTocado = false;
+    document.getElementById('modal-input-monto-pagado')?.addEventListener('input', () => { montoPagadoTocado = true; });
+    document.getElementById('modal-input-monto-total')?.addEventListener('input', (e) => {
+        if (!montoPagadoTocado) {
+            document.getElementById('modal-input-monto-pagado').value = e.target.value;
+        }
     });
 
     document.querySelectorAll('#modal-botones-otros button').forEach(btn => {
         btn.addEventListener('click', (e) => {
             document.querySelectorAll('#modal-botones-otros button').forEach(b => b.classList.remove('tipo-seleccionado'));
             e.currentTarget.classList.add('tipo-seleccionado');
+            const tipoActual = e.currentTarget.dataset.tipo;
             const camposMeses = document.getElementById('campos-otros-meses');
-            if (camposMeses) {
-                camposMeses.style.display = (e.currentTarget.dataset.tipo === "Otro (Meses)") ? 'block' : 'none';
-            }
+            if (camposMeses) camposMeses.style.display = (tipoActual === "Otro (Meses)") ? 'block' : 'none';
+            const camposDias = document.getElementById('campos-otros-dias');
+            if (camposDias) camposDias.style.display = (tipoActual === "Otro (Días)") ? 'block' : 'none';
         });
     });
 }
@@ -632,27 +974,40 @@ function mostrarModalPagoVencido(evento) {
     const pEstudiante = parseFloat(boton.dataset.precioEstudiante);
     const pSemana = parseFloat(boton.dataset.precioSemana);
 
+    const fechaVencimiento = boton.dataset.fechaVencimiento;
+    const diasVencido = fechaVencimiento
+        ? Math.max(0, Math.floor((new Date() - new Date(fechaVencimiento + 'T00:00:00')) / 86400000))
+        : 0;
+
+    const bloqueDiasGracia = diasVencido > 0 ? `
+        <div class="control-formulario" style="margin-top:14px;">
+            <label for="modal-input-dias-gracia">Venció hace ${diasVencido} día${diasVencido === 1 ? '' : 's'}. ¿Cuántos siguió viniendo sin pagar?</label>
+            <input type="number" id="modal-input-dias-gracia" min="0" max="${diasVencido}" value="0" placeholder="0">
+            <small style="color:var(--color-texto-muted); display:block; margin-top:4px;">Esos días se restan del nuevo periodo. Déjalo en 0 si no volvió hasta hoy.</small>
+        </div>` : '';
+
     const titulo = `Renovar a ${nombre}`;
     const contenido = `
         <p style="font-size:0.88em; text-transform:uppercase; letter-spacing:0.6px; color:var(--color-texto-muted); margin-bottom:10px; font-weight:600;">Tipo de Membresía</p>
         <div style="display:flex; gap:8px; flex-wrap:wrap; margin-bottom:20px;" id="modal-botones-pago">
             <button class="btn-selector-modal" data-tipo="Mes Normal" data-precio-total="${pNormal}"
                 style="flex:1; min-width:90px; padding:12px 8px; border-radius:10px; border:2px solid var(--color-borde); background:var(--color-fondo-terciario); color:var(--color-texto-secundario); cursor:pointer; font-weight:700; font-size:0.95em; transition:all 0.2s;">
-                📅 Mes Normal<br><small style="font-weight:400; opacity:0.8;">$${pNormal.toFixed(2)}</small>
+                <svg class="icon"><use href="#icon-calendar"/></svg> Mes Normal<br><small style="font-weight:400; opacity:0.8;">$${pNormal.toFixed(2)}</small>
             </button>
             <button class="btn-selector-modal" data-tipo="Mes Estudiante" data-precio-total="${pEstudiante}"
                 style="flex:1; min-width:90px; padding:12px 8px; border-radius:10px; border:2px solid var(--color-borde); background:var(--color-fondo-terciario); color:var(--color-texto-secundario); cursor:pointer; font-weight:700; font-size:0.95em; transition:all 0.2s;">
-                🎓 Estudiante<br><small style="font-weight:400; opacity:0.8;">$${pEstudiante.toFixed(2)}</small>
+                <svg class="icon"><use href="#icon-graduation-cap"/></svg> Estudiante<br><small style="font-weight:400; opacity:0.8;">$${pEstudiante.toFixed(2)}</small>
             </button>
             <button class="btn-selector-modal" data-tipo="Semana" data-precio-total="${pSemana}"
                 style="flex:1; min-width:90px; padding:12px 8px; border-radius:10px; border:2px solid var(--color-borde); background:var(--color-fondo-terciario); color:var(--color-texto-secundario); cursor:pointer; font-weight:700; font-size:0.95em; transition:all 0.2s;">
-                📆 Semana<br><small style="font-weight:400; opacity:0.8;">$${pSemana.toFixed(2)}</small>
+                <svg class="icon"><use href="#icon-clock"/></svg> Semana<br><small style="font-weight:400; opacity:0.8;">$${pSemana.toFixed(2)}</small>
             </button>
         </div>
         <div class="control-formulario">
             <label for="modal-input-pago">Monto a Pagar Ahora (Abono o Completo):</label>
             <input type="number" id="modal-input-pago" step="0.01" placeholder="Ej: 100.00" min="0.01">
-        </div>`;
+        </div>
+        ${bloqueDiasGracia}`;
 
     mostrarModal(titulo, contenido, async () => {
         const tipoSeleccionado = document.querySelector('#modal-botones-pago .tipo-seleccionado');
@@ -665,12 +1020,17 @@ function mostrarModalPagoVencido(evento) {
         if (isNaN(montoPagado) || montoPagado <= 0) { msjError("Ingrese un monto válido a pagar."); return; }
         if (montoPagado > montoTotal + 0.001) { msjError(`El pago ($${montoPagado.toFixed(2)}) no puede ser mayor al costo total ($${montoTotal.toFixed(2)}).`); return; }
 
-        const payload = { tipo: tipo, nombre: nombre, monto_pagado: montoPagado, monto_total: montoTotal };
+        const inputDiasGracia = document.getElementById('modal-input-dias-gracia');
+        let diasYaAsistidos = inputDiasGracia ? parseInt(inputDiasGracia.value, 10) : 0;
+        if (isNaN(diasYaAsistidos) || diasYaAsistidos < 0) diasYaAsistidos = 0;
+        if (diasYaAsistidos > diasVencido) diasYaAsistidos = diasVencido;
+
+        const payload = { tipo: tipo, nombre: nombre, monto_pagado: montoPagado, monto_total: montoTotal, dias_ya_asistidos: diasYaAsistidos };
         const respuesta = await postData('/api/registrar_ingreso', payload);
-        if (respuesta.exito) { 
-            ocultarModal(); 
+        if (respuesta.exito) {
+            ocultarModal();
             msjExito(respuesta.mensaje);
-            setTimeout(() => location.reload(), 1000); 
+            setTimeout(() => location.reload(), 1000);
         }
         else { msjError(respuesta.error); }
     });

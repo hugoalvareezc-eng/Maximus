@@ -49,6 +49,19 @@
    ================================================================ */
 *, *::before, *::after { box-sizing: border-box; }
 
+/* --- Iconos (sprite SVG, minimalistas, heredan color del texto) --- */
+.icon {
+    width: 1em;
+    height: 1em;
+    stroke: currentColor;
+    fill: none;
+    stroke-width: 2;
+    stroke-linecap: round;
+    stroke-linejoin: round;
+    vertical-align: -0.15em;
+    flex-shrink: 0;
+}
+
 body {
     font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
     margin: 0;
@@ -162,6 +175,7 @@ header nav a.active {
 .panel-stock,
 .panel-ajuste,
 .panel-formulario-inline,
+.panel-grafica,
 .card-deudor {
     background-color: var(--color-fondo-secundario);
     padding: 24px;
@@ -214,6 +228,12 @@ header nav a.active {
     height: 34px;
     filter: brightness(0) invert(0.55);
     transition: filter var(--transicion);
+}
+
+.btn-ingreso .icon-btn-ingreso {
+    width: 34px;
+    height: 34px;
+    stroke-width: 1.6;
 }
 
 .btn-ingreso:hover {
@@ -441,6 +461,169 @@ header nav a.active {
 }
 
 /* ================================================================
+   HISTORIAL — TARJETAS DE RESUMEN Y GRÁFICAS
+   ================================================================ */
+.stats-historial {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 14px;
+    margin-bottom: 22px;
+}
+
+.stat-card {
+    padding: 16px 18px;
+    border-radius: var(--radio-panel);
+    border: 1px solid var(--color-borde-sutil);
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+}
+.stat-card-label {
+    font-size: 0.8em;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    color: var(--color-texto-secundario);
+    font-weight: 600;
+}
+.stat-card-valor {
+    font-size: 1.5em;
+    font-weight: 700;
+    font-variant-numeric: tabular-nums;
+}
+.stat-card.ingreso { background: var(--color-azul-soft); }
+.stat-card.ingreso .stat-card-valor { color: var(--color-primario); }
+.stat-card.gasto { background: var(--color-rojo-soft); }
+.stat-card.gasto .stat-card-valor { color: var(--color-rojo); }
+.stat-card.neto { background: var(--color-verde-soft); }
+.stat-card.neto .stat-card-valor { color: var(--color-verde); }
+
+.graficas-historial {
+    display: grid;
+    grid-template-columns: 1.4fr 1fr;
+    gap: 16px;
+    margin-bottom: 24px;
+    align-items: start;
+}
+.panel-grafica h3 {
+    font-size: 1em;
+    margin: 0 0 14px;
+    display: flex;
+    align-items: center;
+    gap: 7px;
+}
+.grafica-titulo-fila {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    flex-wrap: wrap;
+    gap: 8px;
+    margin-bottom: 4px;
+}
+.grafica-titulo-fila h3 { margin-bottom: 0; }
+
+.leyenda-grafica {
+    display: flex;
+    gap: 14px;
+    font-size: 0.82em;
+    color: var(--color-texto-secundario);
+}
+.leyenda-item { display: flex; align-items: center; gap: 6px; }
+.leyenda-swatch {
+    width: 9px; height: 9px;
+    border-radius: 50%;
+    display: inline-block;
+}
+.leyenda-swatch.ingreso { background: var(--color-primario); }
+.leyenda-swatch.gasto { background: var(--color-rojo); }
+
+.lienzo-grafica {
+    min-height: 220px;
+    overflow-x: auto;
+}
+.svg-grafica { display: block; }
+.svg-grafica .eje-linea { stroke: var(--color-borde); stroke-width: 1; }
+.svg-grafica .eje-texto {
+    fill: var(--color-texto-muted);
+    font-size: 10px;
+    font-variant-numeric: tabular-nums;
+}
+.svg-grafica .barra-ingreso { fill: var(--color-primario); }
+.svg-grafica .barra-gasto { fill: var(--color-rojo); }
+.svg-grafica .barra-hit { cursor: pointer; }
+.svg-grafica .barra-ingreso,
+.svg-grafica .barra-gasto { pointer-events: none; }
+
+.grafica-vacia {
+    color: var(--color-texto-muted);
+    font-size: 0.92em;
+    text-align: center;
+    padding: 60px 10px;
+}
+
+/* Gráfica de barras horizontales (Principales gastos) */
+.lienzo-barras-h { display: flex; flex-direction: column; justify-content: center; gap: 13px; }
+.barra-h-fila { display: flex; flex-direction: column; gap: 5px; cursor: default; }
+.barra-h-encabezado {
+    display: flex;
+    justify-content: space-between;
+    align-items: baseline;
+    gap: 10px;
+}
+.barra-h-etiqueta {
+    font-size: 0.85em;
+    color: var(--color-texto-secundario);
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+.barra-h-valor {
+    flex-shrink: 0;
+    font-size: 0.85em;
+    font-weight: 700;
+    color: var(--color-texto-principal);
+    font-variant-numeric: tabular-nums;
+}
+.barra-h-pista {
+    height: 10px;
+    background: var(--color-fondo-terciario);
+    border-radius: 5px;
+    overflow: hidden;
+}
+.barra-h-relleno {
+    height: 100%;
+    background: var(--color-rojo);
+    border-radius: 5px;
+    transition: width 0.4s ease;
+}
+.barra-h-fila.es-otros .barra-h-relleno { background: var(--color-texto-muted); }
+
+.titulo-detalle {
+    font-size: 1em;
+    color: var(--color-texto-secundario);
+    margin: 4px 0 12px;
+}
+
+.tooltip-grafica {
+    position: fixed;
+    z-index: 5000;
+    background: var(--color-fondo-terciario);
+    border: 1px solid var(--color-borde);
+    border-radius: 8px;
+    padding: 8px 12px;
+    font-size: 0.82em;
+    line-height: 1.5;
+    color: var(--color-texto-principal);
+    box-shadow: var(--sombra-hover);
+    pointer-events: none;
+    white-space: nowrap;
+}
+
+@media (max-width: 768px) {
+    .graficas-historial { grid-template-columns: 1fr; }
+    .stats-historial { grid-template-columns: 1fr; }
+}
+
+/* ================================================================
    SWEETALERT2 — TEMA OSCURO
    ================================================================ */
 div:where(.swal2-container) div:where(.swal2-popup) {
@@ -470,6 +653,33 @@ div:where(.swal2-container) input.swal2-input:focus {
     border-color: var(--color-primario) !important;
     box-shadow: 0 0 0 3px var(--color-primario-glow) !important;
 }
+
+/* Autocompletado propio para el campo de nombre (reemplaza el <datalist> nativo) */
+.autocomplete-lista {
+    position: absolute;
+    top: 100%;
+    left: 0;
+    right: 0;
+    margin-top: 4px;
+    max-height: 220px;
+    overflow-y: auto;
+    background-color: var(--color-fondo-terciario);
+    border: 1px solid var(--color-borde);
+    border-radius: var(--radio-boton);
+    box-shadow: var(--sombra-hover);
+    z-index: 4000;
+    text-align: left;
+}
+
+.autocomplete-item {
+    padding: 10px 14px;
+    font-size: 0.95em;
+    color: var(--color-texto-principal);
+    cursor: pointer;
+    border-bottom: 1px solid var(--color-borde-sutil);
+}
+.autocomplete-item:last-child { border-bottom: none; }
+.autocomplete-item:hover { background-color: var(--color-primario); color: #fff; }
 div:where(.swal2-container) button.swal2-confirm {
     background-color: var(--color-primario) !important;
     border-radius: var(--radio-boton) !important;
@@ -827,6 +1037,7 @@ h3.grupo-mes::before {
     }
 
     .btn-ingreso img { height: 26px; }
+    .btn-ingreso .icon-btn-ingreso { width: 26px; height: 26px; }
 
     .resumen-cifras p { font-size: 0.95em; }
     .resumen-cifras p.neto { font-size: 1.2em; }

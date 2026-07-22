@@ -2,10 +2,10 @@
 
 {% block content %}
 <div class="pagina-lista">
-    <h2>📊 Historial de Ingresos y Gastos</h2>
-    
+    <h2><svg class="icon"><use href="#icon-bar-chart"/></svg> Historial de Ingresos y Gastos</h2>
+
     <div id="panel-bloqueado" class="mensaje-vacio" style="display: flex; flex-direction: column; align-items: center; gap: 15px;">
-        <p>🔒 Esta área está protegida con contraseña.</p>
+        <p><svg class="icon"><use href="#icon-lock"/></svg> Esta área está protegida con contraseña.</p>
         <button id="btn-desbloquear" class="btn-tabla" style="padding: 15px 30px; font-size: 1.2em;">Desbloquear Historial</button>
     </div>
 
@@ -28,15 +28,42 @@
                 <label>Hasta:</label>
                 <input type="date" id="fecha-fin">
             </div>
-            <button id="btn-buscar-fechas" class="btn-tabla">🔍 Buscar</button>
+            <button id="btn-buscar-fechas" class="btn-tabla"><svg class="icon"><use href="#icon-search"/></svg> Buscar</button>
         </section>
 
-        <div style="display: flex; justify-content: space-around; background: #222; padding: 15px; border-radius: 8px; margin-bottom: 20px; border: 1px solid #333;">
-            <h3 style="margin:0; color: #EAEAEA;">Ingresos: <span id="txt-ingresos" style="color: #1C70A0;">$0.00</span></h3>
-            <h3 style="margin:0; color: #EAEAEA;">Gastos: <span id="txt-gastos" style="color: #CC0000;">$0.00</span></h3>
-            <h3 style="margin:0; color: #EAEAEA;">Neto: <span id="txt-neto" style="color: #00CC00;">$0.00</span></h3>
+        <div class="stats-historial">
+            <div class="stat-card ingreso">
+                <span class="stat-card-label">Ingresos</span>
+                <span class="stat-card-valor" id="txt-ingresos">$0.00</span>
+            </div>
+            <div class="stat-card gasto">
+                <span class="stat-card-label">Gastos</span>
+                <span class="stat-card-valor" id="txt-gastos">$0.00</span>
+            </div>
+            <div class="stat-card neto">
+                <span class="stat-card-label">Neto</span>
+                <span class="stat-card-valor" id="txt-neto">$0.00</span>
+            </div>
         </div>
 
+        <div class="graficas-historial">
+            <div class="panel-grafica">
+                <div class="grafica-titulo-fila">
+                    <h3><svg class="icon"><use href="#icon-bar-chart"/></svg> Ingresos vs. Gastos por día</h3>
+                    <div class="leyenda-grafica">
+                        <span class="leyenda-item"><span class="leyenda-swatch ingreso"></span>Ingresos</span>
+                        <span class="leyenda-item"><span class="leyenda-swatch gasto"></span>Gastos</span>
+                    </div>
+                </div>
+                <div id="grafica-tendencia" class="lienzo-grafica"></div>
+            </div>
+            <div class="panel-grafica">
+                <h3><svg class="icon"><use href="#icon-coins"/></svg> Principales gastos del periodo</h3>
+                <div id="grafica-top-gastos" class="lienzo-grafica lienzo-barras-h"></div>
+            </div>
+        </div>
+
+        <h3 class="titulo-detalle">Detalle de movimientos</h3>
         <table class="tabla-datos">
             <thead>
                 <tr>
@@ -50,5 +77,7 @@
                 </tbody>
         </table>
     </div>
+
+    <div id="tooltip-grafica" class="tooltip-grafica" style="display:none;"></div>
 </div>
 {% endblock %}

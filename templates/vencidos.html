@@ -2,11 +2,11 @@
 
 {% block content %}
 <div class="pagina-lista">
-    <h2>❌ Clientes Vencidos</h2>
+    <h2><svg class="icon"><use href="#icon-calendar-x"/></svg> Clientes Vencidos</h2>
 
     {% if not vencidos %}
         <div class="mensaje-vacio">
-            🎉 ¡No hay clientes vencidos! 🎉
+            <svg class="icon"><use href="#icon-check-circle"/></svg> ¡No hay clientes vencidos!
         </div>
     {% else %}
         <table class="tabla-datos">
@@ -23,16 +23,17 @@
                     <td>{{ nombre }}</td>
                     <td>{{ fecha }}</td>
                     <td class="acciones-tabla">
-                        <button class="btn-tabla btn-pagar btn-procesar-pago" 
+                        <button class="btn-tabla btn-pagar btn-procesar-pago"
                                 data-nombre="{{ nombre }}"
+                                data-fecha-vencimiento="{{ fecha }}"
                                 data-precio-normal="{{ precios['Mes Normal'] }}"
                                 data-precio-estudiante="{{ precios['Mes Estudiante'] }}"
                                 data-precio-semana="{{ precios['Semana'] }}">
-                            💳 Procesar Pago
+                            <svg class="icon"><use href="#icon-credit-card"/></svg> Procesar Pago
                         </button>
-                        
+
                         <button class="btn-tabla btn-eliminar" data-nombre="{{ nombre }}">
-                            🗑️ Eliminar
+                            <svg class="icon"><use href="#icon-trash"/></svg> Eliminar
                         </button>
                     </td>
                 </tr>
